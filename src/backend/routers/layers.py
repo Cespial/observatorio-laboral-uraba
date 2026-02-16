@@ -1,9 +1,8 @@
 """
 Gestión de capas — catálogo de todas las capas disponibles
 """
-import json
 from fastapi import APIRouter, HTTPException
-from ..database import engine, cached
+from ..database import engine, cached, query_geojson
 from sqlalchemy import text
 
 router = APIRouter(prefix="/api/layers", tags=["Capas"])
@@ -36,6 +35,7 @@ LAYERS_CATALOG = [
         "description": "Polígono oficial IGAC de Apartadó",
         "geometry_type": "MultiPolygon",
         "category": "cartografia",
+        "geom_col": "geometry",
     },
     {
         "id": "igac_uraba",
@@ -45,6 +45,7 @@ LAYERS_CATALOG = [
         "description": "8 municipios de la región de Urabá",
         "geometry_type": "MultiPolygon",
         "category": "cartografia",
+        "geom_col": "geometry",
     },
     {
         "id": "osm_edificaciones",
@@ -117,17 +118,9 @@ def get_layer_geojson(layer_id: str, limit: int = 5000):
     if not layer:
         raise HTTPException(status_code=404, detail=f"Capa '{layer_id}' no encontrada")
 
-    import geopandas as gpd
-    with engine.connect() as conn:
-        gdf = gpd.read_postgis(
-            text(f"SELECT * FROM {layer['schema']}.{layer['table']} LIMIT :lim"),
-            conn,
-            geom_col="geom",
-            params={"lim": limit},
-        )
-    if gdf.empty:
-        return {"type": "FeatureCollection", "features": []}
-    return json.loads(gdf.to_json())
+    gc = layer.get("geom_col", "geom")
+    sql = f"SELECT * FROM {layer['schema']}.{layer['table']} LIMIT :lim"
+    return query_geojson(sql, {"lim": limit}, geom_col=gc)
 
 
 @router.get("/{layer_id}/stats")
@@ -137,12 +130,13 @@ def get_layer_stats(layer_id: str):
     if not layer:
         raise HTTPException(status_code=404, detail=f"Capa '{layer_id}' no encontrada")
 
+    gc = layer.get("geom_col", "geom")
     with engine.connect() as conn:
         count = conn.execute(
             text(f"SELECT COUNT(*) FROM {layer['schema']}.{layer['table']}")
         ).scalar()
         bbox = conn.execute(
-            text(f"SELECT ST_Extent(geom)::text FROM {layer['schema']}.{layer['table']}")
+            text(f"SELECT ST_Extent({gc})::text FROM {layer['schema']}.{layer['table']}")
         ).scalar()
         cols = conn.execute(
             text(

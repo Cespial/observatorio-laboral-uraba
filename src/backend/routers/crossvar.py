@@ -195,21 +195,26 @@ def scatter_analysis(
         for k in common_keys
     ]
 
-    # Calculate correlation
+    # Calculate correlation (pure Python — no numpy needed)
     correlation = None
     regression = None
     if len(points) >= 3:
-        import numpy as np
-        xs = np.array([p["x"] for p in points])
-        ys = np.array([p["y"] for p in points])
-        if xs.std() > 0 and ys.std() > 0:
-            correlation = float(np.corrcoef(xs, ys)[0, 1])
-            # Linear regression
-            slope, intercept = np.polyfit(xs, ys, 1)
+        xs = [p["x"] for p in points]
+        ys = [p["y"] for p in points]
+        n = len(xs)
+        mean_x = sum(xs) / n
+        mean_y = sum(ys) / n
+        var_x = sum((x - mean_x) ** 2 for x in xs)
+        var_y = sum((y - mean_y) ** 2 for y in ys)
+        cov = sum((x - mean_x) * (y - mean_y) for x, y in zip(xs, ys))
+        if var_x > 0 and var_y > 0:
+            correlation = cov / (var_x * var_y) ** 0.5
+            slope = cov / var_x
+            intercept = mean_y - slope * mean_x
             regression = {
-                "slope": float(slope),
-                "intercept": float(intercept),
-                "r_squared": float(correlation ** 2),
+                "slope": slope,
+                "intercept": intercept,
+                "r_squared": correlation ** 2,
             }
 
     return {

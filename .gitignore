@@ -13,6 +13,9 @@ __pycache__/
 *.egg-info/
 venv/
 
+# Database dumps
+*.dump
+
 # Environment & secrets
 .env
 .env.local

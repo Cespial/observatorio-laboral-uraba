@@ -56,6 +56,10 @@ ALLOWED_ORIGINS = os.getenv(
     "CORS_ORIGINS",
     "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000",
 ).split(",")
+# On Vercel the frontend and API share the same origin
+VERCEL_URL = os.getenv("VERCEL_URL")
+if VERCEL_URL:
+    ALLOWED_ORIGINS.append(f"https://{VERCEL_URL}")
 
 app.add_middleware(
     CORSMiddleware,

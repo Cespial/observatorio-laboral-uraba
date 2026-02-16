@@ -2,10 +2,8 @@
 Endpoints geoespaciales — manzanas con datos, heatmaps, filtros espaciales
 """
 from fastapi import APIRouter, Query
-from ..database import engine
+from ..database import engine, query_geojson
 from sqlalchemy import text
-import geopandas as gpd
-import json
 
 router = APIRouter(prefix="/api/geo", tags=["Geoespacial"])
 
@@ -26,12 +24,7 @@ def get_manzanas(
           AND CAST(total_personas AS INT) <= :max_pop
         LIMIT :lim
     """
-    with engine.connect() as conn:
-        gdf = gpd.read_postgis(text(sql), conn, geom_col="geom",
-                               params={"min_pop": min_pop, "max_pop": max_pop, "lim": limit})
-    if gdf.empty:
-        return {"type": "FeatureCollection", "features": []}
-    return json.loads(gdf.to_json())
+    return query_geojson(sql, {"min_pop": min_pop, "max_pop": max_pop, "lim": limit})
 
 
 @router.get("/edificaciones")
@@ -46,9 +39,7 @@ def get_edificaciones(
         where = "WHERE building = :bt"
         params["bt"] = building_type
     sql = f"SELECT geom, id, building, name, amenity FROM cartografia.osm_edificaciones {where} LIMIT :lim"
-    with engine.connect() as conn:
-        gdf = gpd.read_postgis(text(sql), conn, geom_col="geom", params=params)
-    return json.loads(gdf.to_json()) if not gdf.empty else {"type": "FeatureCollection", "features": []}
+    return query_geojson(sql, params)
 
 
 @router.get("/vias")
@@ -63,9 +54,7 @@ def get_vias(
         where = "WHERE highway = :ht"
         params["ht"] = highway_type
     sql = f"SELECT geom, id, highway, name, surface, lanes FROM cartografia.osm_vias {where} LIMIT :lim"
-    with engine.connect() as conn:
-        gdf = gpd.read_postgis(text(sql), conn, geom_col="geom", params=params)
-    return json.loads(gdf.to_json()) if not gdf.empty else {"type": "FeatureCollection", "features": []}
+    return query_geojson(sql, params)
 
 
 @router.get("/amenidades")
@@ -79,9 +68,7 @@ def get_amenidades(
         where = "WHERE amenity = :at"
         params["at"] = amenity_type
     sql = f"SELECT geom, id, amenity, name, phone, website FROM cartografia.osm_amenidades {where} LIMIT 2000"
-    with engine.connect() as conn:
-        gdf = gpd.read_postgis(text(sql), conn, geom_col="geom", params=params)
-    return json.loads(gdf.to_json()) if not gdf.empty else {"type": "FeatureCollection", "features": []}
+    return query_geojson(sql, params)
 
 
 @router.get("/places")
@@ -108,9 +95,7 @@ def get_google_places(
         WHERE {where}
         LIMIT :lim
     """
-    with engine.connect() as conn:
-        gdf = gpd.read_postgis(text(sql), conn, geom_col="geom", params=params)
-    return json.loads(gdf.to_json()) if not gdf.empty else {"type": "FeatureCollection", "features": []}
+    return query_geojson(sql, params)
 
 
 @router.get("/places/categories")
@@ -144,10 +129,8 @@ def get_places_heatmap(category: str = Query(None)):
 def get_uraba_region():
     """Municipios de la región de Urabá para contexto regional."""
     sql = """
-        SELECT geom, "MpCodigo" as codigo, "MpNombre" as nombre,
+        SELECT geometry, "MpCodigo" as codigo, "MpNombre" as nombre,
                "MpArea" as area_km2, "Depto" as departamento
         FROM cartografia.igac_uraba
     """
-    with engine.connect() as conn:
-        gdf = gpd.read_postgis(text(sql), conn, geom_col="geom")
-    return json.loads(gdf.to_json()) if not gdf.empty else {"type": "FeatureCollection", "features": []}
+    return query_geojson(sql, geom_col="geometry")

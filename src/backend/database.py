@@ -8,9 +8,9 @@ from .config import DATABASE_URL
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
-    pool_recycle=3600,
+    pool_size=1,
+    max_overflow=2,
+    pool_recycle=300,
 )
 
 
@@ -50,19 +50,22 @@ def query_dicts(sql: str, params: dict = None) -> list[dict]:
         return [dict(zip(columns, row)) for row in result.fetchall()]
 
 
-def query_df(sql: str, params: dict = None):
-    """Execute SQL and return pandas DataFrame."""
-    import pandas as pd
+def query_geojson(sql: str, params: dict = None, geom_col: str = "geom") -> dict:
+    """Execute SQL and return a GeoJSON FeatureCollection built server-side
+    by PostGIS. *geom_col* must match the geometry column name in the query."""
+    wrapped = f"""
+        SELECT json_build_object(
+            'type', 'FeatureCollection',
+            'features', COALESCE(json_agg(
+                json_build_object(
+                    'type', 'Feature',
+                    'geometry', ST_AsGeoJSON(sub.{geom_col})::json,
+                    'properties', to_jsonb(sub) - '{geom_col}'
+                )
+            ), '[]'::json)
+        ) AS fc
+        FROM ({sql}) sub
+    """
     with engine.connect() as conn:
-        df = pd.read_sql(text(sql), conn, params=params)
-    return df
-
-
-def query_geojson(sql: str, params: dict = None) -> dict:
-    """Execute SQL that returns geometry and build a GeoJSON FeatureCollection."""
-    import geopandas as gpd
-    with engine.connect() as conn:
-        gdf = gpd.read_postgis(text(sql), conn, geom_col="geom", params=params)
-    if gdf.empty:
-        return {"type": "FeatureCollection", "features": []}
-    return json.loads(gdf.to_json())
+        row = conn.execute(text(wrapped), params or {}).fetchone()
+    return row[0] if row and row[0] else {"type": "FeatureCollection", "features": []}
