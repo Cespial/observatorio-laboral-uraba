@@ -51,6 +51,8 @@ export const useStore = create((set, get) => ({
   economiaData: null,
   gobiernoData: null,
   errors: {},
+  selectedCategory: null,
+  setSelectedCategory: (cat) => set({ selectedCategory: cat }),
   activePanel: 'overview',
   setActivePanel: (p) => set({ activePanel: p }),
 

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useStore } from '../store'
-import { SkeletonTab, ErrorBanner } from './Skeleton'
+import { SkeletonTab, ErrorBanner, ExportCSVButton } from './Skeleton'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, RadarChart, Radar, PolarGrid,
@@ -180,7 +180,10 @@ export default function GobiernoTab() {
               <Bar dataKey="promedio" fill="var(--border)" opacity={0.6} radius={[4, 4, 0, 0]} name="Prom. Grupo" />
             </BarChart>
           </ResponsiveContainer>
-          <div className="data-source">Fuente: MinTIC — Gobierno Digital via datos.gov.co</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="data-source">Fuente: MinTIC — Gobierno Digital via datos.gov.co</div>
+            <ExportCSVButton rows={digitalMain} filename="gobierno_digital.csv" />
+          </div>
         </>
       )}
 

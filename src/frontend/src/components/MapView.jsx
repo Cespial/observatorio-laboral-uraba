@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo } from 'react'
+import { useEffect, useCallback, useMemo, useState } from 'react'
 import { Map } from 'react-map-gl/maplibre'
 import DeckGL from '@deck.gl/react'
 import { GeoJsonLayer, ScatterplotLayer } from '@deck.gl/layers'
@@ -42,6 +42,7 @@ function getPopulationColor(totalPersonas) {
 }
 
 export default function MapView() {
+  const [popup, setPopup] = useState(null)
   const viewState = useStore((s) => s.viewState)
   const setViewState = useStore((s) => s.setViewState)
   const activeLayers = useStore((s) => s.activeLayers)
@@ -50,6 +51,7 @@ export default function MapView() {
   const fetchManzanas = useStore((s) => s.fetchManzanas)
   const fetchPlaces = useStore((s) => s.fetchPlaces)
   const fetchPlacesHeatmap = useStore((s) => s.fetchPlacesHeatmap)
+  const selectedCategory = useStore((s) => s.selectedCategory)
 
   useEffect(() => {
     fetchLayerGeoJSON('limite_municipal')
@@ -128,6 +130,7 @@ export default function MapView() {
             const pop = parseInt(f.properties.total_personas, 10) || 0
             return getPopulationColor(pop)
           },
+          pickable: true,
           material: {
             ambient: 0.4,
             diffuse: 0.6,
@@ -138,7 +141,10 @@ export default function MapView() {
     }
 
     if (activeLayers.includes('google_places') && layerData.places) {
-      const features = layerData.places.features || []
+      const allFeatures = layerData.places.features || []
+      const features = selectedCategory
+        ? allFeatures.filter((f) => f.properties.category === selectedCategory)
+        : allFeatures
       result.push(
         new ScatterplotLayer({
           id: 'google_places',
@@ -176,36 +182,28 @@ export default function MapView() {
     }
 
     return result
-  }, [activeLayers, layerData])
+  }, [activeLayers, layerData, selectedCategory])
+
+  const onClick = useCallback((info) => {
+    if (!info.object) { setPopup(null); return }
+    const props = info.object.properties || info.object
+    const [lng, lat] = info.coordinate || []
+    if (props.name || props.category) {
+      setPopup({ type: 'place', props, x: info.x, y: info.y, lng, lat })
+    } else if (props.cod_dane_manzana) {
+      setPopup({ type: 'manzana', props, x: info.x, y: info.y, lng, lat })
+    }
+  }, [])
 
   const getTooltip = useCallback(({ object }) => {
     if (!object) return null
     const props = object.properties || object
-    if (!props.name && !props.category) return null
-    return {
-      html: `
-        <div style="
-          background: #ffffff;
-          border: 1px solid #DDE1E8;
-          border-radius: 6px;
-          padding: 8px 12px;
-          font-family: 'Inter', sans-serif;
-          font-size: 13px;
-          color: #1A1F36;
-          max-width: 260px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        ">
-          ${props.name ? `<div style="font-weight: 600; color: #0050B3; margin-bottom: 4px;">${props.name}</div>` : ''}
-          ${props.category ? `<div style="margin-bottom: 2px;"><span style="color: #5E6687;">Categoría:</span> ${props.category}</div>` : ''}
-          ${props.rating != null ? `<div><span style="color: #5E6687;">Rating:</span> ${props.rating}</div>` : ''}
-        </div>
-      `,
-      style: {
-        backgroundColor: 'transparent',
-        border: 'none',
-        padding: 0,
-      },
+    if (props.name) return { text: props.name }
+    if (props.cod_dane_manzana) {
+      const pop = parseInt(props.total_personas, 10) || 0
+      return { text: `Manzana · ${pop} hab.` }
     }
+    return null
   }, [])
 
   return (
@@ -216,12 +214,90 @@ export default function MapView() {
         controller={true}
         layers={layers}
         getTooltip={getTooltip}
+        onClick={onClick}
       >
         <Map
           mapStyle={MAP_STYLE}
           reuseMaps
         />
       </DeckGL>
+
+      {popup && (
+        <div
+          style={{
+            position: 'absolute',
+            left: popup.x + 12,
+            top: popup.y - 12,
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            borderRadius: 8,
+            padding: '10px 14px',
+            fontSize: 12,
+            color: 'var(--text-primary)',
+            maxWidth: 280,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
+            zIndex: 20,
+            pointerEvents: 'auto',
+          }}
+        >
+          <button
+            onClick={() => setPopup(null)}
+            style={{
+              position: 'absolute', top: 4, right: 8,
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 14, color: 'var(--text-muted)', lineHeight: 1,
+            }}
+          >&times;</button>
+
+          {popup.type === 'place' && (
+            <>
+              <div style={{ fontWeight: 700, color: 'var(--accent-primary)', marginBottom: 4, paddingRight: 16 }}>
+                {popup.props.name}
+              </div>
+              {popup.props.category && (
+                <div style={{ marginBottom: 2 }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Categoria: </span>
+                  <span className="badge badge-blue">{popup.props.category}</span>
+                </div>
+              )}
+              {popup.props.rating != null && (
+                <div style={{ marginBottom: 2 }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Rating: </span>
+                  <strong>{popup.props.rating}</strong>
+                  <span style={{ color: 'var(--text-muted)', marginLeft: 4 }}>
+                    ({popup.props.user_ratings_total || 0} resenas)
+                  </span>
+                </div>
+              )}
+              {popup.props.address && (
+                <div style={{ color: 'var(--text-muted)', fontSize: 11, marginTop: 4 }}>
+                  {popup.props.address}
+                </div>
+              )}
+            </>
+          )}
+
+          {popup.type === 'manzana' && (
+            <>
+              <div style={{ fontWeight: 700, color: 'var(--accent-primary)', marginBottom: 4 }}>
+                Manzana Censal
+              </div>
+              <div style={{ marginBottom: 2 }}>
+                <span style={{ color: 'var(--text-secondary)' }}>DANE: </span>
+                <span className="font-mono" style={{ fontSize: 11 }}>{popup.props.cod_dane_manzana}</span>
+              </div>
+              <div>
+                <span style={{ color: 'var(--text-secondary)' }}>Poblacion: </span>
+                <strong>{parseInt(popup.props.total_personas, 10) || 'N/D'}</strong>
+                <span style={{ color: 'var(--text-muted)' }}> hab.</span>
+              </div>
+              <div style={{ color: 'var(--text-muted)', fontSize: 10, marginTop: 4 }}>
+                Municipio: {popup.props.cod_dane_municipio}
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }

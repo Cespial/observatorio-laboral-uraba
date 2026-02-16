@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useStore } from '../store'
-import { SkeletonTab, ErrorBanner } from './Skeleton'
+import { SkeletonTab, ErrorBanner, ExportCSVButton } from './Skeleton'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell,
@@ -45,7 +45,10 @@ export default function VictimasChart() {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      <div className="data-source">Fuente: Unidad para las Victimas — datos.gov.co</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+        <div className="data-source">Fuente: Unidad para las Victimas — datos.gov.co</div>
+        <ExportCSVButton rows={data} filename="victimas_hechos.csv" />
+      </div>
     </div>
   )
 }

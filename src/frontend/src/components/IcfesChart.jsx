@@ -1,20 +1,32 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore } from '../store'
-import { SkeletonTab, ErrorBanner } from './Skeleton'
+import { SkeletonTab, ErrorBanner, ExportCSVButton } from './Skeleton'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
 } from 'recharts'
 
+const RANGE_STYLE = {
+  background: 'var(--bg-tertiary)',
+  color: 'var(--text-primary)',
+  border: '1px solid var(--border)',
+  borderRadius: 4,
+  padding: '2px 6px',
+  fontSize: 11,
+  outline: 'none',
+  fontFamily: 'inherit',
+}
+
 export default function IcfesChart() {
   const { icfesData, fetchIcfes, errors } = useStore()
+  const [periodRange, setPeriodRange] = useState(null)
 
   useEffect(() => { fetchIcfes() }, [])
 
   if (errors.educacion) return <ErrorBanner message={errors.educacion} />
   if (!icfesData) return <SkeletonTab />
 
-  const data = icfesData
+  const allData = icfesData
     .filter((d) => d.prom_global !== null)
     .map((d) => ({
       periodo: d.periodo,
@@ -23,9 +35,25 @@ export default function IcfesChart() {
       estudiantes: d.estudiantes,
     }))
 
+  const allPeriods = allData.map((d) => d.periodo)
+  const minP = periodRange?.[0] ?? allPeriods[0]
+  const maxP = periodRange?.[1] ?? allPeriods[allPeriods.length - 1]
+  const data = allData.filter((d) => d.periodo >= minP && d.periodo <= maxP)
+
   return (
     <div className="fade-in">
-      <h3 className="section-title">ICFES Saber 11 — Promedio por Periodo</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <h3 className="section-title" style={{ marginBottom: 0 }}>ICFES Saber 11</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <select value={minP} onChange={(e) => setPeriodRange([e.target.value, maxP])} style={RANGE_STYLE}>
+            {allPeriods.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>—</span>
+          <select value={maxP} onChange={(e) => setPeriodRange([minP, e.target.value])} style={RANGE_STYLE}>
+            {allPeriods.filter((p) => p >= minP).map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
+      </div>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
@@ -39,7 +67,10 @@ export default function IcfesChart() {
           <Bar dataKey="matematicas" fill="#40A9FF" opacity={0.8} radius={[4, 4, 0, 0]} name="Matematicas" />
         </BarChart>
       </ResponsiveContainer>
-      <div className="data-source">Fuente: ICFES Saber 11 — datos.gov.co</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+        <div className="data-source">Fuente: ICFES Saber 11 — datos.gov.co</div>
+        <ExportCSVButton rows={data} filename={`icfes_${minP}-${maxP}.csv`} />
+      </div>
     </div>
   )
 }

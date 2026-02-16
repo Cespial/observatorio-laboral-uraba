@@ -12,6 +12,11 @@ const LAYERS = [
 export default function LayerPanel() {
   const activeLayers = useStore((s) => s.activeLayers);
   const toggleLayer = useStore((s) => s.toggleLayer);
+  const placesCategories = useStore((s) => s.placesCategories);
+  const selectedCategory = useStore((s) => s.selectedCategory);
+  const setSelectedCategory = useStore((s) => s.setSelectedCategory);
+
+  const placesActive = activeLayers.includes('google_places');
 
   return (
     <div
@@ -45,57 +50,85 @@ export default function LayerPanel() {
         {LAYERS.map((layer) => {
           const active = activeLayers.includes(layer.id);
           return (
-            <div
-              key={layer.id}
-              onClick={() => toggleLayer(layer.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                cursor: 'pointer',
-                opacity: active ? 1 : 0.45,
-                transition: 'opacity 0.2s ease',
-              }}
-            >
-              <span
+            <div key={layer.id}>
+              <div
+                onClick={() => toggleLayer(layer.id)}
                 style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: layer.color,
-                  flexShrink: 0,
-                  boxShadow: active ? `0 0 6px ${layer.color}` : 'none',
-                }}
-              />
-
-              <span style={{ fontSize: 12, color: active ? 'var(--text-primary)' : 'var(--text-secondary)', flex: 1 }}>
-                {layer.label}
-              </span>
-
-              <span
-                style={{
-                  width: 28,
-                  height: 14,
-                  borderRadius: 7,
-                  background: active ? 'rgba(0,80,179,0.2)' : 'var(--border)',
-                  position: 'relative',
-                  transition: 'background 0.2s ease',
-                  flexShrink: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  cursor: 'pointer',
+                  opacity: active ? 1 : 0.45,
+                  transition: 'opacity 0.2s ease',
                 }}
               >
                 <span
                   style={{
-                    position: 'absolute',
-                    top: 2,
-                    left: active ? 14 : 2,
-                    width: 10,
-                    height: 10,
+                    width: 8,
+                    height: 8,
                     borderRadius: '50%',
-                    background: active ? 'var(--accent-primary)' : 'var(--border)',
-                    transition: 'left 0.2s ease, background 0.2s ease',
+                    background: layer.color,
+                    flexShrink: 0,
+                    boxShadow: active ? `0 0 6px ${layer.color}` : 'none',
                   }}
                 />
-              </span>
+                <span style={{ fontSize: 12, color: active ? 'var(--text-primary)' : 'var(--text-secondary)', flex: 1 }}>
+                  {layer.label}
+                </span>
+                <span
+                  style={{
+                    width: 28,
+                    height: 14,
+                    borderRadius: 7,
+                    background: active ? 'rgba(0,80,179,0.2)' : 'var(--border)',
+                    position: 'relative',
+                    transition: 'background 0.2s ease',
+                    flexShrink: 0,
+                  }}
+                >
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: 2,
+                      left: active ? 14 : 2,
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      background: active ? 'var(--accent-primary)' : 'var(--border)',
+                      transition: 'left 0.2s ease, background 0.2s ease',
+                    }}
+                  />
+                </span>
+              </div>
+
+              {/* Category filter for places */}
+              {layer.id === 'google_places' && placesActive && placesCategories?.length > 0 && (
+                <select
+                  value={selectedCategory || ''}
+                  onChange={(e) => setSelectedCategory(e.target.value || null)}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    marginTop: 4,
+                    marginLeft: 16,
+                    width: 'calc(100% - 16px)',
+                    fontSize: 10,
+                    padding: '3px 6px',
+                    background: 'var(--bg-tertiary)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 4,
+                    outline: 'none',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  <option value="">Todas ({placesCategories.reduce((s, c) => s + c.count, 0)})</option>
+                  {placesCategories.map((c) => (
+                    <option key={c.category} value={c.category}>
+                      {c.category} ({c.count})
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           );
         })}

@@ -1,6 +1,6 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore } from '../store'
-import { SkeletonTab, ErrorBanner } from './Skeleton'
+import { SkeletonTab, ErrorBanner, ExportCSVButton } from './Skeleton'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
@@ -13,15 +13,31 @@ const COLORS = {
   'Violencia Intrafamiliar': '#1890FF',
 }
 
+const RANGE_STYLE = {
+  background: 'var(--bg-tertiary)',
+  color: 'var(--text-primary)',
+  border: '1px solid var(--border)',
+  borderRadius: 4,
+  padding: '2px 6px',
+  fontSize: 11,
+  outline: 'none',
+  fontFamily: 'inherit',
+}
+
 export default function SecurityChart() {
   const { securityMatrix, fetchSecurityMatrix, errors } = useStore()
+  const [yearRange, setYearRange] = useState(null)
 
   useEffect(() => { fetchSecurityMatrix() }, [])
 
   if (errors.seguridad) return <ErrorBanner message={errors.seguridad} />
   if (!securityMatrix) return <SkeletonTab />
 
-  const years = [...new Set(securityMatrix.map((d) => d.anio))].sort()
+  const allYears = [...new Set(securityMatrix.map((d) => d.anio))].sort()
+  const minY = yearRange?.[0] ?? allYears[0]
+  const maxY = yearRange?.[1] ?? allYears[allYears.length - 1]
+  const years = allYears.filter((y) => y >= minY && y <= maxY)
+
   const pivoted = years.map((y) => {
     const row = { anio: y }
     securityMatrix.filter((d) => d.anio === y).forEach((d) => {
@@ -32,7 +48,18 @@ export default function SecurityChart() {
 
   return (
     <div className="fade-in">
-      <h3 className="section-title">Delitos por Ano</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <h3 className="section-title" style={{ marginBottom: 0 }}>Delitos por Ano</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <select value={minY} onChange={(e) => setYearRange([+e.target.value, maxY])} style={RANGE_STYLE}>
+            {allYears.map((y) => <option key={y} value={y}>{y}</option>)}
+          </select>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>—</span>
+          <select value={maxY} onChange={(e) => setYearRange([minY, +e.target.value])} style={RANGE_STYLE}>
+            {allYears.filter((y) => y >= minY).map((y) => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </div>
+      </div>
       <ResponsiveContainer width="100%" height={220}>
         <AreaChart data={pivoted}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
@@ -56,7 +83,10 @@ export default function SecurityChart() {
           ))}
         </AreaChart>
       </ResponsiveContainer>
-      <div className="data-source">Fuente: Policia Nacional — datos.gov.co</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+        <div className="data-source">Fuente: Policia Nacional — datos.gov.co</div>
+        <ExportCSVButton rows={pivoted} filename={`seguridad_${minY}-${maxY}.csv`} />
+      </div>
     </div>
   )
 }

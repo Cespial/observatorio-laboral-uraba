@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useStore } from '../store'
-import { SkeletonTab, ErrorBanner } from './Skeleton'
+import { SkeletonTab, ErrorBanner, ExportCSVButton } from './Skeleton'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, LineChart, Line, Cell,
@@ -88,7 +88,7 @@ export default function SaludTab() {
               <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} domain={[0, 'auto']} />
               <Tooltip
                 contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12 }}
-                labelStyle={{ color: '#1A1F36', fontWeight: 600 }}
+                labelStyle={{ color: 'var(--text-primary)', fontWeight: 600 }}
               />
               <Line type="monotone" dataKey="urbano" stroke="#0050B3" strokeWidth={2} dot={{ r: 3 }} name="Urbano" />
               <Line type="monotone" dataKey="rural" stroke="#FA8C16" strokeWidth={2} dot={{ r: 3 }} name="Rural" connectNulls />
@@ -98,7 +98,10 @@ export default function SaludTab() {
           <div style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 4, fontStyle: 'italic' }}>
             0-5: Sin riesgo | 5.1-14: Bajo | 14.1-35: Medio | 35.1-80: Alto | {'>'}80: Inviable
           </div>
-          <div className="data-source">Fuente: INS — IRCA via datos.gov.co</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="data-source">Fuente: INS — IRCA via datos.gov.co</div>
+            <ExportCSVButton rows={ircaChart} filename="irca_calidad_agua.csv" />
+          </div>
         </>
       )}
 
@@ -123,7 +126,10 @@ export default function SaludTab() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-          <div className="data-source">Fuente: INS — SIVIGILA via datos.gov.co</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="data-source">Fuente: INS — SIVIGILA via datos.gov.co</div>
+            <ExportCSVButton rows={sivigilaTop} filename="sivigila_eventos.csv" />
+          </div>
         </>
       )}
     </div>

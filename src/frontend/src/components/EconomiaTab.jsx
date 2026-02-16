@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useStore } from '../store'
-import { SkeletonTab, ErrorBanner } from './Skeleton'
+import { SkeletonTab, ErrorBanner, ExportCSVButton } from './Skeleton'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, Cell, PieChart, Pie,
@@ -81,7 +81,10 @@ export default function EconomiaTab() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-          <div className="data-source">Fuente: DNP — TerriData ({sectorData[0]?.anio})</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="data-source">Fuente: DNP — TerriData ({sectorData[0]?.anio})</div>
+            <ExportCSVButton rows={sectorData} filename="economia_pib_sectores.csv" />
+          </div>
         </>
       )}
 
@@ -102,7 +105,10 @@ export default function EconomiaTab() {
               <Area type="monotone" dataKey="total_accesos" stroke="#0050B3" fill="#0050B3" fillOpacity={0.15} strokeWidth={2} name="Accesos" />
             </AreaChart>
           </ResponsiveContainer>
-          <div className="data-source">Fuente: MinTIC — datos.gov.co</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="data-source">Fuente: MinTIC — datos.gov.co</div>
+            <ExportCSVButton rows={internet} filename="economia_internet.csv" />
+          </div>
         </>
       )}
 
@@ -123,7 +129,10 @@ export default function EconomiaTab() {
               <Bar dataKey="contratos" fill="#0050B3" opacity={0.85} radius={[0, 4, 4, 0]} name="contratos" />
             </BarChart>
           </ResponsiveContainer>
-          <div className="data-source">Fuente: SECOP II — datos.gov.co ({secop.reduce((s, r) => s + r.contratos, 0).toLocaleString('es-CO')} contratos)</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="data-source">Fuente: SECOP II — datos.gov.co ({secop.reduce((s, r) => s + r.contratos, 0).toLocaleString('es-CO')} contratos)</div>
+            <ExportCSVButton rows={secopTop} filename="economia_secop.csv" />
+          </div>
         </>
       )}
 
