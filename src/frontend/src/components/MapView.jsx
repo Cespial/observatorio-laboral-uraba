@@ -2,7 +2,7 @@ import { useEffect, useCallback, useMemo, useState } from 'react'
 import { Map } from 'react-map-gl/maplibre'
 import DeckGL from '@deck.gl/react'
 import { FlyToInterpolator } from '@deck.gl/core'
-import { GeoJsonLayer, ScatterplotLayer } from '@deck.gl/layers'
+import { GeoJsonLayer, ScatterplotLayer, TextLayer } from '@deck.gl/layers'
 import { HeatmapLayer } from '@deck.gl/aggregation-layers'
 import { useStore } from '../store'
 
@@ -53,16 +53,19 @@ export default function MapView() {
   const fetchPlaces = useStore((s) => s.fetchPlaces)
   const fetchPlacesHeatmap = useStore((s) => s.fetchPlacesHeatmap)
   const selectedCategory = useStore((s) => s.selectedCategory)
+  const selectedMunicipio = useStore((s) => s.selectedMunicipio)
+  const municipios = useStore((s) => s.municipios)
+  const municipioCentroids = useStore((s) => s.municipioCentroids)
+  const fetchCentroids = useStore((s) => s.fetchCentroids)
 
   useEffect(() => {
     fetchLayerGeoJSON('limite_municipal')
-    fetchLayerGeoJSON('osm_edificaciones')
-    fetchLayerGeoJSON('osm_vias')
     fetchManzanas()
     fetchVeredas()
     fetchPlaces()
     fetchPlacesHeatmap()
-  }, [fetchLayerGeoJSON, fetchManzanas, fetchVeredas, fetchPlaces, fetchPlacesHeatmap])
+    fetchCentroids()
+  }, [fetchLayerGeoJSON, fetchManzanas, fetchVeredas, fetchPlaces, fetchPlacesHeatmap, fetchCentroids])
 
   const onViewStateChange = useCallback(
     ({ viewState: vs }) => {
@@ -76,17 +79,48 @@ export default function MapView() {
     const result = []
 
     if (activeLayers.includes('limite_municipal') && layerData.limite_municipal) {
+      const selDivipola = municipios.find(m => m.name === selectedMunicipio)?.divipola
       result.push(
         new GeoJsonLayer({
           id: 'limite_municipal',
           data: layerData.limite_municipal,
-          filled: false,
+          filled: true,
           stroked: true,
-          getLineColor: [0, 80, 179],
-          getLineWidth: 2.5,
+          getFillColor: (f) => {
+            const code = f.properties.dane_code
+            return code === selDivipola ? [0, 80, 179, 40] : [0, 80, 179, 10]
+          },
+          getLineColor: [0, 50, 140],
+          getLineWidth: 3,
           lineWidthUnits: 'pixels',
+          pickable: true,
+          updateTriggers: {
+            getFillColor: [selDivipola],
+          },
         }),
       )
+
+      // Municipality name labels
+      if (municipioCentroids && municipioCentroids.length > 0) {
+        result.push(
+          new TextLayer({
+            id: 'municipio_labels',
+            data: municipioCentroids,
+            getPosition: (d) => [d.lon, d.lat],
+            getText: (d) => d.nombre,
+            getSize: 14,
+            getColor: [0, 30, 80, 220],
+            getTextAnchor: 'middle',
+            getAlignmentBaseline: 'center',
+            fontWeight: 'bold',
+            outlineWidth: 2,
+            outlineColor: [255, 255, 255, 200],
+            fontFamily: 'system-ui, sans-serif',
+            sizeUnits: 'pixels',
+            billboard: false,
+          }),
+        )
+      }
     }
 
     if (activeLayers.includes('veredas_mgn') && layerData.veredas_mgn) {
@@ -203,7 +237,7 @@ export default function MapView() {
     }
 
     return result
-  }, [activeLayers, layerData, selectedCategory, viewState.zoom])
+  }, [activeLayers, layerData, selectedCategory, viewState.zoom, selectedMunicipio, municipios, municipioCentroids])
 
   const onClick = useCallback((info) => {
     if (!info.object) { setPopup(null); return }
@@ -219,6 +253,9 @@ export default function MapView() {
   const getTooltip = useCallback(({ object }) => {
     if (!object) return null
     const props = object.properties || object
+    if (props.nombre && props.dane_code) {
+      return { text: `${props.nombre} (${props.dane_code})` }
+    }
     if (props.name) return { text: props.name }
     if (props.cod_dane_manzana) {
       const pop = parseInt(props.total_personas, 10) || 0

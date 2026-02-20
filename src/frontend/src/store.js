@@ -157,13 +157,24 @@ export const useStore = create((set, get) => ({
       }))
     }
   },
+  municipioCentroids: null,
+  fetchCentroids: async () => {
+    if (get().municipioCentroids) return
+    try {
+      set({ municipioCentroids: await safeFetch(`${API}/geo/municipios/centroids`) })
+    } catch (e) {
+      console.error('fetchCentroids:', e)
+    }
+  },
   fetchLayerGeoJSON: async (id) => {
-    // We don't cache locally by ID anymore because the content depends on the selected municipality
-    // or we need to include the municipio in the cache key. For simplicity, we just fetch.
+    // limite_municipal always loads ALL 11 municipalities (no dane_code filter)
+    const skipDaneFilter = ['limite_municipal', 'igac_uraba']
     const municipio = get().selectedMunicipio
     const mun = get().municipios.find(m => m.name === municipio)
-    const daneParam = mun && mun.divipola !== 'REGIONAL' ? `?dane_code=${mun.divipola}` : ''
-    
+    const daneParam = !skipDaneFilter.includes(id) && mun && mun.divipola !== 'REGIONAL'
+      ? `?dane_code=${mun.divipola}`
+      : ''
+
     try {
       const d = await safeFetch(`${API}/layers/${id}/geojson${daneParam}`)
       set((s) => ({ layerData: { ...s.layerData, [id]: d } }))

@@ -129,7 +129,7 @@ def get_google_places(
     where = " AND ".join(conditions)
     sql = f"""
         SELECT geom, place_id, name, category, address, rating,
-               user_ratings_total, price_level, lat, lon
+               user_ratings_total, lat, lon
         FROM servicios.google_places_regional
         WHERE {where}
         LIMIT :lim
@@ -183,3 +183,21 @@ def get_uraba_region():
         FROM cartografia.igac_uraba
     """
     return query_geojson(sql, geom_col="geometry")
+
+
+@router.get("/municipios/centroids")
+def get_municipios_centroids():
+    """Centroides de los municipios de Urabá para labels en el mapa."""
+    sql = """
+        SELECT dane_code, nombre,
+               ST_Y(ST_Centroid(geom)) AS lat,
+               ST_X(ST_Centroid(geom)) AS lon
+        FROM cartografia.limite_municipal
+        ORDER BY nombre
+    """
+    with engine.connect() as conn:
+        rows = conn.execute(text(sql)).fetchall()
+    return [
+        {"dane_code": r[0], "nombre": r[1], "lat": float(r[2]), "lon": float(r[3])}
+        for r in rows
+    ]

@@ -11,10 +11,10 @@ router = APIRouter(prefix="/api/layers", tags=["Capas"])
 LAYERS_CATALOG = [
     {
         "id": "limite_municipal",
-        "name": "Límite Municipal",
+        "name": "Límites Municipales de Urabá",
         "schema": "cartografia",
         "table": "limite_municipal",
-        "description": "Polígono del municipio de Apartadó",
+        "description": "Polígonos de los 11 municipios de la subregión de Urabá (fuente DAGRAN)",
         "geometry_type": "Polygon",
         "category": "cartografia",
     },
@@ -37,60 +37,14 @@ LAYERS_CATALOG = [
         "category": "cartografia",
     },
     {
-        "id": "igac_apartado",
-        "name": "Municipio IGAC",
-        "schema": "cartografia",
-        "table": "igac_municipios",
-        "description": "Polígono oficial IGAC de Apartadó",
-        "geometry_type": "MultiPolygon",
-        "category": "cartografia",
-        "geom_col": "geometry",
-    },
-    {
         "id": "igac_uraba",
-        "name": "Municipios de Urabá",
+        "name": "Municipios de Urabá (IGAC)",
         "schema": "cartografia",
         "table": "igac_uraba",
-        "description": "8 municipios de la región de Urabá",
-        "geometry_type": "MultiPolygon",
+        "description": "11 municipios de la subregión de Urabá",
+        "geometry_type": "Polygon",
         "category": "cartografia",
         "geom_col": "geometry",
-    },
-    {
-        "id": "osm_edificaciones",
-        "name": "Edificaciones (OSM)",
-        "schema": "cartografia",
-        "table": "osm_edificaciones",
-        "description": "Edificaciones de OpenStreetMap",
-        "geometry_type": "Polygon",
-        "category": "osm",
-    },
-    {
-        "id": "osm_vias",
-        "name": "Red Vial (OSM)",
-        "schema": "cartografia",
-        "table": "osm_vias",
-        "description": "Vías y calles de OpenStreetMap",
-        "geometry_type": "LineString",
-        "category": "osm",
-    },
-    {
-        "id": "osm_uso_suelo",
-        "name": "Uso del Suelo (OSM)",
-        "schema": "cartografia",
-        "table": "osm_uso_suelo",
-        "description": "Clasificación de uso del suelo OSM",
-        "geometry_type": "Polygon",
-        "category": "osm",
-    },
-    {
-        "id": "osm_amenidades",
-        "name": "Amenidades (OSM)",
-        "schema": "cartografia",
-        "table": "osm_amenidades",
-        "description": "Puntos de interés de OpenStreetMap",
-        "geometry_type": "Point",
-        "category": "osm",
     },
     {
         "id": "google_places",
@@ -140,8 +94,7 @@ def get_layer_geojson(
     if dane_code:
         # Check if column exists in the catalog definition? No, we don't store columns there.
         # We'll just assume for standard tables.
-        if layer_id in ["limite_municipal", "manzanas_censales", "veredas_mgn",
-                        "osm_edificaciones", "osm_vias", "osm_uso_suelo", "osm_amenidades"]:
+        if layer_id in ["manzanas_censales", "veredas_mgn"]:
             conditions.append("dane_code = :dane")
             params["dane"] = dane_code
     
