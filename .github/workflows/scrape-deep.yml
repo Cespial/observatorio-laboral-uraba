@@ -1,15 +1,15 @@
-name: Scrape Diario (Incremental)
+name: Scrape Profundo (Semanal)
 
 on:
   schedule:
-    # Run every day at 6 AM and 6 PM Colombia time (UTC-5)
-    - cron: '0 11,23 * * *'
+    # Run every Sunday at 3 AM Colombia time (UTC-5 = 8 AM UTC)
+    - cron: '0 8 * * 0'
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
-  scrape-and-sync:
+  scrape-deep:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 360  # 6 horas
 
     steps:
       - name: Checkout observatorio
@@ -38,11 +38,11 @@ jobs:
         run: |
           pip install sqlalchemy psycopg2-binary
 
-      - name: Run scraper (incremental)
+      - name: Run deep scraper
         run: |
           cd uraba_empleos
-          python main.py --sources computrabajo elempleo indeed comfama linkedin sena comfenalco magneto365 talent jooble
-        timeout-minutes: 40
+          python main.py --deep --sources computrabajo elempleo indeed comfama magneto365 talent jooble
+        timeout-minutes: 350
         continue-on-error: true
 
       - name: Copy SQLite to home for ETL
@@ -59,7 +59,7 @@ jobs:
 
       - name: Summary
         run: |
-          echo "## Scraping Summary (Incremental)" >> $GITHUB_STEP_SUMMARY
+          echo "## Scraping Summary (Deep - Weekly)" >> $GITHUB_STEP_SUMMARY
           echo "- Date: $(date -u)" >> $GITHUB_STEP_SUMMARY
           if [ -f uraba_empleos/empleos_uraba.db ]; then
             COUNT=$(sqlite3 uraba_empleos/empleos_uraba.db "SELECT COUNT(*) FROM ofertas" 2>/dev/null || echo "N/A")
