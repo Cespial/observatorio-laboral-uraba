@@ -65,64 +65,73 @@ def get_ofertas(
 
 @router.get("/stats")
 @cached(ttl_seconds=3600)
-def get_empleo_stats():
+def get_empleo_stats(dane_code: str = Query(None)):
     """Estadísticas generales del mercado laboral."""
-    with engine.connect() as conn:
-        total = conn.execute(text(
-            "SELECT COUNT(*) FROM empleo.ofertas_laborales"
-        )).scalar() or 0
+    conditions = ["1=1"]
+    params = {}
+    if dane_code:
+        conditions.append("dane_code = :dane")
+        params["dane"] = dane_code
+    where = " AND ".join(conditions)
 
-        por_municipio = conn.execute(text("""
-            SELECT municipio, COUNT(*) as total
-            FROM empleo.ofertas_laborales
-            GROUP BY municipio ORDER BY total DESC
-        """)).fetchall()
+    total_rows = query_dicts(
+        f"SELECT COUNT(*) as total FROM empleo.ofertas_laborales WHERE {where}", params
+    )
+    total = total_rows[0]["total"] if total_rows else 0
 
-        por_fuente = conn.execute(text("""
-            SELECT fuente, COUNT(*) as total
-            FROM empleo.ofertas_laborales
-            GROUP BY fuente ORDER BY total DESC
-        """)).fetchall()
+    por_municipio = query_dicts(f"""
+        SELECT municipio, COUNT(*) as total
+        FROM empleo.ofertas_laborales WHERE {where}
+        GROUP BY municipio ORDER BY total DESC
+    """, params)
 
-        por_sector = conn.execute(text("""
-            SELECT sector, COUNT(*) as total
-            FROM empleo.ofertas_laborales
-            GROUP BY sector ORDER BY total DESC
-        """)).fetchall()
+    por_fuente = query_dicts(f"""
+        SELECT fuente, COUNT(*) as total
+        FROM empleo.ofertas_laborales WHERE {where}
+        GROUP BY fuente ORDER BY total DESC
+    """, params)
 
-        top_empresas = conn.execute(text("""
-            SELECT empresa, COUNT(*) as total
-            FROM empleo.ofertas_laborales
-            WHERE empresa IS NOT NULL AND empresa != 'No especificada'
-            GROUP BY empresa ORDER BY total DESC LIMIT 15
-        """)).fetchall()
+    por_sector = query_dicts(f"""
+        SELECT sector, COUNT(*) as total
+        FROM empleo.ofertas_laborales WHERE {where}
+        GROUP BY sector ORDER BY total DESC
+    """, params)
 
-        con_salario = conn.execute(text("""
-            SELECT COUNT(*) FROM empleo.ofertas_laborales
-            WHERE salario_numerico IS NOT NULL
-        """)).scalar() or 0
+    emp_cond = f"{where} AND empresa IS NOT NULL AND empresa != 'No especificada'"
+    top_empresas = query_dicts(f"""
+        SELECT empresa, COUNT(*) as total
+        FROM empleo.ofertas_laborales WHERE {emp_cond}
+        GROUP BY empresa ORDER BY total DESC LIMIT 15
+    """, params)
 
-        salario_stats = conn.execute(text("""
-            SELECT
-                ROUND(AVG(salario_numerico)) as promedio,
-                MIN(salario_numerico) as minimo,
-                MAX(salario_numerico) as maximo,
-                PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salario_numerico) as mediana
-            FROM empleo.ofertas_laborales
-            WHERE salario_numerico IS NOT NULL
-        """)).fetchone()
+    sal_cond = f"{where} AND salario_numerico IS NOT NULL"
+    con_sal_rows = query_dicts(
+        f"SELECT COUNT(*) as total FROM empleo.ofertas_laborales WHERE {sal_cond}", params
+    )
+    con_salario = con_sal_rows[0]["total"] if con_sal_rows else 0
+
+    sal_rows = query_dicts(f"""
+        SELECT
+            ROUND(AVG(salario_numerico)) as promedio,
+            MIN(salario_numerico) as minimo,
+            MAX(salario_numerico) as maximo,
+            PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salario_numerico) as mediana
+        FROM empleo.ofertas_laborales
+        WHERE {sal_cond}
+    """, params)
+    ss = sal_rows[0] if sal_rows else {}
 
     return {
         "total_ofertas": total,
         "con_salario": con_salario,
-        "salario_promedio": int(salario_stats[0]) if salario_stats and salario_stats[0] else None,
-        "salario_minimo": int(salario_stats[1]) if salario_stats and salario_stats[1] else None,
-        "salario_maximo": int(salario_stats[2]) if salario_stats and salario_stats[2] else None,
-        "salario_mediana": int(salario_stats[3]) if salario_stats and salario_stats[3] else None,
-        "por_municipio": [{"municipio": r[0], "total": r[1]} for r in por_municipio],
-        "por_fuente": [{"fuente": r[0], "total": r[1]} for r in por_fuente],
-        "por_sector": [{"sector": r[0], "total": r[1]} for r in por_sector],
-        "top_empresas": [{"empresa": r[0], "total": r[1]} for r in top_empresas],
+        "salario_promedio": int(ss["promedio"]) if ss.get("promedio") else None,
+        "salario_minimo": int(ss["minimo"]) if ss.get("minimo") else None,
+        "salario_maximo": int(ss["maximo"]) if ss.get("maximo") else None,
+        "salario_mediana": int(ss["mediana"]) if ss.get("mediana") else None,
+        "por_municipio": por_municipio,
+        "por_fuente": por_fuente,
+        "por_sector": por_sector,
+        "top_empresas": top_empresas,
     }
 
 

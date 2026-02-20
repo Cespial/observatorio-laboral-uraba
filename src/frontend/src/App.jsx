@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, lazy, Suspense } from 'react'
 import { useStore } from './store'
 import Header from './components/Header'
 import KPICards from './components/KPICards'
@@ -7,6 +7,8 @@ import LayerPanel from './components/LayerPanel'
 import SidePanel from './components/SidePanel'
 import Footer from './components/Footer'
 import WelcomeOverlay from './components/WelcomeOverlay'
+
+const DashboardView = lazy(() => import('./components/DashboardView'))
 
 function Toast() {
   const toast = useStore((s) => s.toast)
@@ -34,8 +36,19 @@ function Toast() {
   )
 }
 
+function DashboardFallback() {
+  return (
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
+      <div style={{ textAlign: 'center' }}>
+        <div className="skeleton" style={{ width: 200, height: 20, margin: '0 auto 12px' }} />
+        <div className="skeleton" style={{ width: 140, height: 14, margin: '0 auto' }} />
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
-  const { summary, fetchSummary, fetchCatalogSummary } = useStore()
+  const { summary, fetchSummary, fetchCatalogSummary, activeView } = useStore()
 
   const isEmbed = useMemo(() => {
     const params = new URLSearchParams(window.location.search)
@@ -53,11 +66,19 @@ export default function App() {
       {!isEmbed && <Header />}
       {!isEmbed && <KPICards summary={summary} />}
       <div className="main-layout" style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ flex: 1, position: 'relative' }}>
-          <MapView />
-          {!isEmbed && <LayerPanel />}
-        </div>
-        <SidePanel />
+        {activeView === 'mapa' ? (
+          <>
+            <div style={{ flex: 1, position: 'relative' }}>
+              <MapView />
+              {!isEmbed && <LayerPanel />}
+            </div>
+            <SidePanel />
+          </>
+        ) : (
+          <Suspense fallback={<DashboardFallback />}>
+            <DashboardView />
+          </Suspense>
+        )}
       </div>
       {!isEmbed && <Footer />}
       <Toast />

@@ -101,6 +101,7 @@ export const useStore = create((set, get) => ({
         empleoData: null,
         empleoKpis: null,
         empleoAnalytics: null,
+        businessDirectory: null,
         errors: {},
       }))
 
@@ -147,6 +148,11 @@ export const useStore = create((set, get) => ({
   errors: {},
   selectedCategory: null,
   setSelectedCategory: (cat) => set({ selectedCategory: cat }),
+  activeView: 'mapa',
+  setActiveView: (v) => set({ activeView: v }),
+  businessDirectory: null,
+  businessDirectoryLoading: false,
+  businessDirectoryParams: { page: 1, search: '', category: null, min_rating: 0 },
   activePanel: 'overview',
   setActivePanel: (p) => set({ activePanel: p }),
 
@@ -291,12 +297,15 @@ export const useStore = create((set, get) => ({
   },
   fetchEconomia: async () => {
     if (get().economiaData) return
+    const mun = get().municipios.find(m => m.name === get().selectedMunicipio)
+    const dp = mun && mun.divipola !== 'REGIONAL' ? `dane_code=${mun.divipola}` : ''
+    const sep = dp ? '&' : ''
     try {
       const [inet, sec, tur, td] = await Promise.all([
-        safeFetch(`${API}/indicators/economia/internet/serie`),
-        safeFetch(`${API}/indicators/economia/secop`),
-        safeFetch(`${API}/indicators/economia/turismo`),
-        safeFetch(`${API}/indicators/terridata?dimension=${encodeURIComponent('Economía')}`),
+        safeFetch(`${API}/indicators/economia/internet/serie${dp ? '?' + dp : ''}`),
+        safeFetch(`${API}/indicators/economia/secop${dp ? '?' + dp : ''}`),
+        safeFetch(`${API}/indicators/economia/turismo${dp ? '?' + dp : ''}`),
+        safeFetch(`${API}/indicators/terridata?dimension=${encodeURIComponent('Economía')}${sep}${dp}`),
       ])
       set({
         economiaData: {
@@ -356,13 +365,15 @@ export const useStore = create((set, get) => ({
   },
   fetchEmpleo: async () => {
     if (get().empleoData) return
+    const mun = get().municipios.find(m => m.name === get().selectedMunicipio)
+    const dp = mun && mun.divipola !== 'REGIONAL' ? `?dane_code=${mun.divipola}` : ''
     try {
       const [stats, serie, skills, salarios, sectores] = await Promise.all([
-        safeFetch(`${API}/empleo/stats`),
-        safeFetch(`${API}/empleo/serie-temporal`),
-        safeFetch(`${API}/empleo/skills`),
-        safeFetch(`${API}/empleo/salarios`),
-        safeFetch(`${API}/empleo/sectores`),
+        safeFetch(`${API}/empleo/stats${dp}`),
+        safeFetch(`${API}/empleo/serie-temporal${dp}`),
+        safeFetch(`${API}/empleo/skills${dp}`),
+        safeFetch(`${API}/empleo/salarios${dp}`),
+        safeFetch(`${API}/empleo/sectores${dp}`),
       ])
       set({ empleoData: { stats, serie, skills, salarios, sectores } })
     } catch (e) {
@@ -372,25 +383,49 @@ export const useStore = create((set, get) => ({
   },
   fetchEmpleoKpis: async () => {
     if (get().empleoKpis) return
+    const mun = get().municipios.find(m => m.name === get().selectedMunicipio)
+    const dp = mun && mun.divipola !== 'REGIONAL' ? `?dane_code=${mun.divipola}` : ''
     try {
-      set({ empleoKpis: await safeFetch(`${API}/empleo/kpis`) })
+      set({ empleoKpis: await safeFetch(`${API}/empleo/kpis${dp}`) })
     } catch (e) {
       console.error('fetchEmpleoKpis:', e)
     }
   },
   fetchEmpleoAnalytics: async () => {
     if (get().empleoAnalytics) return
+    const mun = get().municipios.find(m => m.name === get().selectedMunicipio)
+    const dp = mun && mun.divipola !== 'REGIONAL' ? `?dane_code=${mun.divipola}` : ''
     try {
       const [termometro, dinamismo, concentracion, brechaSkills] = await Promise.all([
-        safeFetch(`${API}/analytics/laboral/termometro`),
-        safeFetch(`${API}/analytics/laboral/dinamismo`),
-        safeFetch(`${API}/analytics/laboral/concentracion`),
-        safeFetch(`${API}/analytics/laboral/brecha-skills`),
+        safeFetch(`${API}/analytics/laboral/termometro${dp}`),
+        safeFetch(`${API}/analytics/laboral/dinamismo${dp}`),
+        safeFetch(`${API}/analytics/laboral/concentracion${dp}`),
+        safeFetch(`${API}/analytics/laboral/brecha-skills${dp}`),
       ])
       set({ empleoAnalytics: { termometro, dinamismo, concentracion, brechaSkills } })
     } catch (e) {
       console.error('fetchEmpleoAnalytics:', e)
       set((s) => ({ errors: { ...s.errors, empleoAnalytics: e.message } }))
+    }
+  },
+  fetchBusinessDirectory: async (params = {}) => {
+    const mun = get().municipios.find(m => m.name === get().selectedMunicipio)
+    const dane = mun && mun.divipola !== 'REGIONAL' ? mun.divipola : ''
+    const merged = { ...get().businessDirectoryParams, ...params }
+    set({ businessDirectoryLoading: true, businessDirectoryParams: merged })
+    const qs = new URLSearchParams()
+    if (dane) qs.set('dane_code', dane)
+    if (merged.search) qs.set('search', merged.search)
+    if (merged.category) qs.set('category', merged.category)
+    if (merged.min_rating > 0) qs.set('min_rating', String(merged.min_rating))
+    qs.set('page', String(merged.page || 1))
+    qs.set('page_size', '25')
+    try {
+      const data = await safeFetch(`${API}/geo/places/directory?${qs}`)
+      set({ businessDirectory: data, businessDirectoryLoading: false })
+    } catch (e) {
+      console.error('fetchBusinessDirectory:', e)
+      set({ businessDirectoryLoading: false })
     }
   },
 }))

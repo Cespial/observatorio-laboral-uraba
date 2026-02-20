@@ -1,8 +1,9 @@
 """
 Endpoints geoespaciales — manzanas con datos, heatmaps, filtros espaciales
 """
+import math
 from fastapi import APIRouter, Query
-from ..database import engine, query_geojson
+from ..database import engine, query_dicts, query_geojson
 from sqlalchemy import text
 
 router = APIRouter(prefix="/api/geo", tags=["Geoespacial"])
@@ -135,6 +136,69 @@ def get_google_places(
         LIMIT :lim
     """
     return query_geojson(sql, params)
+
+
+@router.get("/places/directory")
+def get_places_directory(
+    dane_code: str = Query(None, description="Filtrar por código DANE"),
+    category: str = Query(None, description="Categoría"),
+    search: str = Query(None, description="Búsqueda por nombre o dirección"),
+    min_rating: float = Query(0, description="Rating mínimo"),
+    sort_by: str = Query("name", description="Campo para ordenar"),
+    sort_order: str = Query("asc", description="asc o desc"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
+):
+    """Directorio paginado de negocios para el dashboard."""
+    conditions = ["1=1"]
+    params = {}
+
+    if dane_code:
+        conditions.append("dane_code = :dane")
+        params["dane"] = dane_code
+    if category:
+        conditions.append("category = :cat")
+        params["cat"] = category
+    if search:
+        conditions.append("(name ILIKE :q OR address ILIKE :q)")
+        params["q"] = f"%{search}%"
+    if min_rating > 0:
+        conditions.append("COALESCE(rating, 0) >= :mr")
+        params["mr"] = min_rating
+
+    where = " AND ".join(conditions)
+
+    # Count total
+    count_sql = f"SELECT COUNT(*) as total FROM servicios.google_places_regional WHERE {where}"
+    count_row = query_dicts(count_sql, params)
+    total = count_row[0]["total"] if count_row else 0
+
+    # Sorting
+    allowed_sort = {"name": "name", "category": "category", "rating": "rating", "user_ratings_total": "user_ratings_total"}
+    sort_col = allowed_sort.get(sort_by, "name")
+    order = "DESC" if sort_order.lower() == "desc" else "ASC"
+
+    offset = (page - 1) * page_size
+    params["lim"] = page_size
+    params["off"] = offset
+
+    sql = f"""
+        SELECT place_id, name, category, address, rating,
+               user_ratings_total, lat, lon
+        FROM servicios.google_places_regional
+        WHERE {where}
+        ORDER BY {sort_col} {order} NULLS LAST
+        LIMIT :lim OFFSET :off
+    """
+    items = query_dicts(sql, params)
+
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": math.ceil(total / page_size) if page_size else 0,
+    }
 
 
 @router.get("/places/categories")

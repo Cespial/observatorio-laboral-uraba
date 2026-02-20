@@ -8,6 +8,8 @@ export default function Header() {
   const selectedMunicipio = useStore((s) => s.selectedMunicipio)
   const municipios = useStore((s) => s.municipios)
   const setSelectedMunicipio = useStore((s) => s.setSelectedMunicipio)
+  const activeView = useStore((s) => s.activeView)
+  const setActiveView = useStore((s) => s.setActiveView)
 
   return (
     <header
@@ -71,6 +73,34 @@ export default function Header() {
               color: 'var(--text-muted)'
             }}>▼</span>
           </div>
+        </div>
+
+        {/* View Toggle: Mapa / Tablero */}
+        <div style={{
+          display: 'flex', background: 'var(--bg-tertiary)',
+          borderRadius: 8, border: '1px solid var(--border)',
+          overflow: 'hidden',
+        }}>
+          {['mapa', 'tablero'].map((v) => (
+            <button
+              key={v}
+              onClick={() => setActiveView(v)}
+              style={{
+                padding: '5px 14px',
+                fontSize: 12,
+                fontWeight: activeView === v ? 700 : 400,
+                fontFamily: 'inherit',
+                color: activeView === v ? '#fff' : 'var(--text-secondary)',
+                background: activeView === v ? 'var(--accent-primary)' : 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                textTransform: 'capitalize',
+              }}
+            >
+              {v === 'mapa' ? 'Mapa' : 'Tablero'}
+            </button>
+          ))}
         </div>
       </div>
 
