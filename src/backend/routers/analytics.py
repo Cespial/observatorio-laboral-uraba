@@ -97,35 +97,37 @@ def get_termometro_laboral():
 @cached(ttl_seconds=3600)
 def get_oferta_demanda():
     """Oferta laboral vs demanda potencial (población)."""
-    sql = """
-        WITH ofertas AS (
-            SELECT municipio, dane_code, COUNT(*) as vacantes
-            FROM empleo.ofertas_laborales
-            WHERE dane_code IS NOT NULL
-            GROUP BY municipio, dane_code
-        ),
-        poblacion AS (
-            SELECT DISTINCT ON (dane_code)
-                dane_code, entidad as municipio_pop, dato_numerico as poblacion, anio
-            FROM socioeconomico.terridata
-            WHERE indicador = 'Población total'
-            ORDER BY dane_code, anio DESC
-        )
-        SELECT
-            p.municipio_pop as municipio,
-            o.dane_code,
-            COALESCE(o.vacantes, 0) as vacantes,
-            p.poblacion,
-            CASE WHEN p.poblacion > 0
-                THEN ROUND((COALESCE(o.vacantes, 0)::numeric / p.poblacion) * 1000, 2)
-                ELSE 0
-            END as vacantes_por_1000_hab,
-            p.anio as anio_poblacion
-        FROM poblacion p
-        LEFT JOIN ofertas o ON p.dane_code = o.dane_code
-        ORDER BY vacantes_por_1000_hab DESC
-    """
-    return query_dicts(sql)
+    ofertas = query_dicts("""
+        SELECT municipio, dane_code, COUNT(*) as vacantes
+        FROM empleo.ofertas_laborales
+        WHERE dane_code IS NOT NULL
+        GROUP BY municipio, dane_code
+        ORDER BY vacantes DESC
+    """)
+
+    poblacion = query_dicts("""
+        SELECT DISTINCT ON (dane_code)
+            dane_code, entidad as municipio, dato_numerico as poblacion, anio
+        FROM socioeconomico.terridata
+        WHERE indicador = :ind
+        ORDER BY dane_code, anio DESC
+    """, {"ind": "Población total"})
+
+    # Build lookup
+    pop_map = {p["dane_code"]: p for p in poblacion}
+    result = []
+    for o in ofertas:
+        p = pop_map.get(o["dane_code"])
+        pob = p["poblacion"] if p else 0
+        result.append({
+            "municipio": o["municipio"],
+            "dane_code": o["dane_code"],
+            "vacantes": o["vacantes"],
+            "poblacion": pob,
+            "vacantes_por_1000_hab": round(o["vacantes"] / pob * 1000, 2) if pob and pob > 0 else 0,
+            "anio_poblacion": p["anio"] if p else None,
+        })
+    return sorted(result, key=lambda x: x["vacantes_por_1000_hab"], reverse=True)
 
 
 @router.get("/laboral/brecha-skills")
