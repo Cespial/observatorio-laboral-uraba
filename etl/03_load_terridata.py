@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 ETL 03 - Load TerriData Excel into PostgreSQL (Regional Urabá)
-Fixed version with correct scoping and table creation.
+Exhaustive version: loads all files in the directory.
+Ensures .env is loaded.
 """
 
 import pandas as pd
@@ -9,7 +10,11 @@ import numpy as np
 import os
 from pathlib import Path
 from sqlalchemy import create_engine, text
-from config import MUNICIPIOS, DB_URL
+from dotenv import load_dotenv
+
+# Load env before importing DB_URL if possible, or just re-read it here
+load_dotenv()
+DB_URL = os.getenv("DATABASE_URL")
 
 # -- Configuration -----------------------------------------------------------
 DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "terridata"
@@ -42,23 +47,25 @@ def parse_spanish_number(val):
     try: return float(s)
     except ValueError: return np.nan
 
-def load_file(engine, file_path, dane_code):
-    print(f"Reading {file_path} for {dane_code}...")
+def load_file(engine, file_path):
+    import re
+    filename = file_path.name
+    match = re.search(r'(\d{5})', filename)
+    dane_code = match.group(1) if match else "00000"
+    
+    print(f"Processing {filename} (DANE: {dane_code})...")
     try:
         df = pd.read_excel(file_path, sheet_name=SHEET_NAME)
     except Exception as e:
-        # Try without sheet name if fail
         print(f"  Warning: failed to read sheet '{SHEET_NAME}', trying first sheet. {e}")
         df = pd.read_excel(file_path)
     
-    # Clean
     df = df[df["Código Entidad"].notna()].reset_index(drop=True)
     df.rename(columns=COL_MAP, inplace=True)
     
     df["dato_numerico"] = df["dato_numerico"].apply(parse_spanish_number)
     df["dane_code"] = str(dane_code).zfill(5)
     
-    # Select only columns we want
     cols_to_keep = list(COL_MAP.values()) + ["dane_code"]
     df = df[[c for c in df.columns if c in cols_to_keep]]
 
@@ -70,12 +77,11 @@ def load_file(engine, file_path, dane_code):
 
 def main():
     if not DB_URL:
-        print("Error: DB_URL not set.")
+        print("Error: DATABASE_URL not set in .env")
         return
         
     engine = create_engine(DB_URL)
     
-    # Create table with dane_code
     ddl = f"""
     CREATE SCHEMA IF NOT EXISTS {SCHEMA};
     DROP TABLE IF EXISTS {FULL_TABLE} CASCADE;
@@ -104,27 +110,24 @@ def main():
     with engine.begin() as conn:
         conn.execute(text(ddl))
 
-    for dane_code, name, _ in MUNICIPIOS:
-        # Search for file like TerriData05045f.xlsx or 05045.xlsx
-        files = list(DATA_DIR.glob(f"*{dane_code}*"))
-        if not files:
-            print(f"  [SKIP] No file found for {name} ({dane_code})")
-            continue
-            
-        for f in files:
-            if f.suffix in ['.xlsx', '.xls']:
-                try:
-                    load_file(engine, f, dane_code)
-                except Exception as e:
-                    print(f"  [ERROR] Loading {f}: {e}")
+    files = list(DATA_DIR.glob("*.xls*"))
+    print(f"Found {len(files)} files in {DATA_DIR}")
+    
+    for f in files:
+        try:
+            load_file(engine, f)
+        except Exception as e:
+            print(f"  [ERROR] Loading {f}: {e}")
 
-    # Final summary
     print("\n" + "=" * 70)
     print("  TERRIDATA LOAD COMPLETE")
     print("=" * 70)
-    with engine.connect() as conn:
-        count = conn.execute(text(f"SELECT COUNT(*) FROM {FULL_TABLE}")).scalar()
-        print(f"  Total records loaded: {count}")
+    try:
+        with engine.connect() as conn:
+            count = conn.execute(text(f"SELECT COUNT(*) FROM {FULL_TABLE}")).scalar()
+            print(f"  Total records loaded to Supabase: {count}")
+    except Exception as e:
+        print(f"Summary failed: {e}")
     print("=" * 70)
 
 if __name__ == "__main__":

@@ -19,10 +19,20 @@ function fmt(val) {
 }
 
 export default function KPICards({ summary }) {
-  if (!summary) {
+  const errors = useStore(s => s.errors)
+
+  if (errors.summary) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 24px', fontSize: 13, color: 'var(--semantic-negative)' }}>
+        Error al cargar indicadores: {errors.summary}
+      </div>
+    )
+  }
+
+  if (!summary || summary.municipio === 'Error') {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 24px', fontSize: 13, color: 'var(--text-muted)' }}>
-        Cargando indicadores...
+        Cargando indicadores territoriales...
       </div>
     )
   }

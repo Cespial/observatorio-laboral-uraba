@@ -134,10 +134,14 @@ export const useStore = create((set, get) => ({
   fetchSummary: async (daneCode = null) => {
     const param = daneCode ? `?dane_code=${daneCode}` : ''
     try {
-      set({ summary: await safeFetch(`${API}/stats/summary${param}`) })
+      const data = await safeFetch(`${API}/stats/summary${param}`)
+      set({ summary: data })
     } catch (e) {
       console.error('fetchSummary:', e)
-      set((s) => ({ errors: { ...s.errors, summary: e.message } }))
+      set((s) => ({ 
+        errors: { ...s.errors, summary: e.message },
+        summary: { municipio: 'Error', region: 'Urabá', divipola: daneCode || '---' } 
+      }))
     }
   },
   fetchLayerGeoJSON: async (id) => {
