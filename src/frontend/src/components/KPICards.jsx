@@ -1,16 +1,16 @@
+import { useEffect } from 'react'
 import { useStore } from '../store'
 
 const CARDS = [
+  { key: 'empleo_ofertas', label: 'Ofertas laborales', source: 'Multi-portal', accent: true },
+  { key: 'empleo_empresas', label: 'Empresas contratando', source: 'Multi-portal', accent: true },
+  { key: 'empleo_salario', label: 'Salario promedio', source: 'Multi-portal', format: 'salary' },
   { key: 'poblacion_total', label: 'Poblacion total', source: 'DANE', yearKey: 'poblacion_anio' },
-  { key: 'manzanas_censales', label: 'Manzanas censales', source: 'MGN-DANE' },
   { key: 'establecimientos_comerciales', label: 'Negocios mapeados', source: 'Google Places' },
   { key: 'establecimientos_educativos', label: 'Establec. educativos', source: 'MEN' },
-  { key: 'matricula_total', label: 'Matricula total', source: 'MEN' },
   { key: 'ips_salud', label: 'IPS habilitadas', source: 'REPS' },
-  { key: 'prestadores_servicios', label: 'Prestadores serv.', source: 'SuperServ.' },
   { key: 'total_homicidios', label: 'Homicidios', source: 'Policia Nal.', negative: true },
   { key: 'total_hurtos', label: 'Hurtos', source: 'Policia Nal.', negative: true },
-  { key: 'total_vif', label: 'Violencia intraf.', source: 'Policia Nal.', negative: true },
   { key: 'total_victimas_conflicto', label: 'Victimas conflicto', source: 'Unidad Victimas', negative: true },
 ]
 
@@ -20,8 +20,17 @@ function fmt(val) {
   return String(val)
 }
 
+function fmtSalary(val) {
+  if (val == null) return '---'
+  return `$${(val / 1000000).toFixed(1)}M`
+}
+
 export default function KPICards({ summary }) {
   const errors = useStore(s => s.errors)
+  const empleoKpis = useStore(s => s.empleoKpis)
+  const fetchEmpleoKpis = useStore(s => s.fetchEmpleoKpis)
+
+  useEffect(() => { fetchEmpleoKpis() }, [])
 
   if (errors.summary) {
     return (
@@ -42,7 +51,12 @@ export default function KPICards({ summary }) {
   return (
     <div className="kpi-strip" style={{ display: 'flex', gap: 12, padding: '10px 24px', overflowX: 'auto', flexShrink: 0, background: 'var(--bg-primary)', borderBottom: '1px solid var(--border)' }}>
       {CARDS.map((card) => {
-        const val = card.key === 'icfes_promedio' ? summary.icfes?.promedio_global : summary[card.key]
+        let val
+        if (card.key === 'empleo_ofertas') val = empleoKpis?.total_ofertas
+        else if (card.key === 'empleo_empresas') val = empleoKpis?.total_empresas
+        else if (card.key === 'empleo_salario') val = empleoKpis?.salario_promedio
+        else if (card.key === 'icfes_promedio') val = summary.icfes?.promedio_global
+        else val = summary[card.key]
         const year = card.yearKey ? summary[card.yearKey] : null
         return (
           <div
@@ -54,12 +68,12 @@ export default function KPICards({ summary }) {
               style={{
                 fontSize: 20,
                 fontWeight: 700,
-                color: card.negative ? 'var(--semantic-negative)' : 'var(--text-primary)',
+                color: card.negative ? 'var(--semantic-negative)' : card.accent ? 'var(--accent-primary)' : 'var(--text-primary)',
                 lineHeight: 1.2,
                 fontFeatureSettings: '"tnum"',
               }}
             >
-              {fmt(val)}
+              {card.format === 'salary' ? fmtSalary(val) : fmt(val)}
             </div>
             <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
               {card.label}

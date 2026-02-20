@@ -25,27 +25,30 @@ TAGS_METADATA = [
 ]
 
 app = FastAPI(
-    title="Observatorio de Ciudades — Urabá",
+    title="Observatorio Laboral de Urabá",
     description=(
-        "## API de datos territoriales — Región de Urabá\n\n"
-        "Plataforma integral de inteligencia territorial que consolida información "
-        "geoespacial, socioeconómica y de mercado laboral para los **11 municipios** "
-        "de la subregión de Urabá, Antioquia.\n\n"
+        "## API del Observatorio Laboral — Región de Urabá\n\n"
+        "Plataforma de inteligencia territorial con enfoque en el **mercado laboral** "
+        "que consolida información de empleo, economía, educación, salud y seguridad "
+        "para los **11 municipios** de la subregión de Urabá, Antioquia.\n\n"
         "### Municipios Cubiertos\n"
         "- Apartadó, Turbo, Carepa, Chigorodó, Necoclí\n"
         "- Arboletes, San Juan de Urabá, San Pedro de Urabá\n"
         "- Mutatá, Murindó, Vigía del Fuerte\n\n"
-        "### Fuentes de datos\n"
+        "### Fuentes de empleo\n"
+        "- **Computrabajo, ElEmpleo, Indeed, LinkedIn**: Portales de empleo\n"
+        "- **Comfama, Comfenalco**: Cajas de compensación\n"
+        "- **SENA**: Agencia Pública de Empleo\n\n"
+        "### Fuentes territoriales\n"
         "- **DANE**: Censo 2018, MGN, proyecciones\n"
         "- **DNP**: TerriData (Indicadores municipales comparados)\n"
         "- **ICFES**: Saber 11 resultados por colegio\n"
         "- **Policía Nacional**: Seguridad y convivencia\n"
-        "- **Uraba Empleos**: Vacantes laborales en tiempo real\n"
-        "- **OpenStreetMap & Google Places**: Infraestructura y servicios\n\n"
+        "- **Google Places**: Establecimientos comerciales\n\n"
         "### Frontend\n"
         "React 18 + Deck.gl + MapLibre GL + Recharts"
     ),
-    version="3.0.0",
+    version="4.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_tags=TAGS_METADATA,
@@ -105,8 +108,8 @@ async def general_exception_handler(request: Request, exc: Exception):
 def root():
     """Health check y catálogo de endpoints principales."""
     return {
-        "name": "Observatorio de Ciudades — Urabá",
-        "version": "3.0.0",
+        "name": "Observatorio Laboral de Urabá",
+        "version": "4.0.0",
         "municipios": [
             "Apartadó", "Turbo", "Carepa", "Chigorodó", "Necoclí",
             "Arboletes", "San Juan de Urabá", "San Pedro de Urabá",

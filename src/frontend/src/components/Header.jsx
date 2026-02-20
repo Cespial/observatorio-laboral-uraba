@@ -25,10 +25,10 @@ export default function Header() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <div>
           <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.02em' }}>
-            Observatorio de Ciudades
+            Observatorio Laboral
           </div>
           <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-            Urabá Antioqueño
+            Uraba, Antioquia
           </div>
         </div>
         <div style={{ width: 1, height: 32, background: 'var(--border)', margin: '0 8px' }} />

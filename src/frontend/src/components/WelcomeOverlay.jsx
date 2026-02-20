@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useStore } from '../store'
 
-const DISMISSED_KEY = 'observatorio-welcome-dismissed'
+const DISMISSED_KEY = 'observatorio-welcome-dismissed-v2'
 
 export default function WelcomeOverlay() {
   const [visible, setVisible] = useState(false)
@@ -54,24 +54,25 @@ export default function WelcomeOverlay() {
         }}
       >
         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-primary)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>
-          Observatorio de Ciudades
+          Observatorio Laboral
         </div>
         <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: 8 }}>
-          Apartado, Antioquia
+          Region de Uraba, Antioquia
         </h1>
         <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 20 }}>
-          Plataforma integral de datos territoriales que integra informacion de
-          {' '}<strong>seguridad</strong>, <strong>educacion</strong>, <strong>salud</strong>,
-          {' '}<strong>economia</strong> y <strong>gobierno</strong> del municipio de Apartado
-          en la region de Uraba.
+          Plataforma de inteligencia territorial con enfoque en el
+          {' '}<strong>mercado laboral</strong> de los 11 municipios de Uraba.
+          Integra datos de <strong>empleo</strong>, <strong>economia</strong>,
+          {' '}<strong>educacion</strong>, <strong>salud</strong> y <strong>seguridad</strong> para
+          facilitar la toma de decisiones basada en evidencia.
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
           {[
+            { n: '368+', label: 'Ofertas laborales' },
+            { n: '6', label: 'Fuentes de empleo' },
+            { n: '11', label: 'Municipios cubiertos' },
             { n: catalogSummary ? String(catalogSummary.tables) : '...', label: 'Tablas de datos' },
-            { n: catalogSummary ? catalogSummary.records?.toLocaleString('es-CO') : '...', label: 'Registros' },
-            { n: '8', label: 'Dimensiones' },
-            { n: '16+', label: 'Fuentes oficiales' },
           ].map((s) => (
             <div key={s.label} style={{ padding: '10px 14px', background: 'var(--bg-secondary)', borderRadius: 8, border: '1px solid var(--border)' }}>
               <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent-primary)' }}>{s.n}</div>
@@ -81,7 +82,7 @@ export default function WelcomeOverlay() {
         </div>
 
         <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.5 }}>
-          Fuentes: DANE, DNP-TerriData, Policia Nacional, ICFES, MinSalud, MinTIC, SECOP, INS-SIVIGILA, Unidad para las Victimas, Google Places, OpenStreetMap
+          Fuentes: Computrabajo, ElEmpleo, Indeed, LinkedIn, Comfama, Comfenalco, DANE, DNP-TerriData, Policia Nacional, ICFES, MinSalud, MinTIC, Google Places
         </div>
 
         <button

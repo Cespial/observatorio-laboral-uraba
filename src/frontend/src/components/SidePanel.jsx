@@ -11,9 +11,11 @@ const EconomiaTab = lazy(() => import('./EconomiaTab'))
 const GobiernoTab = lazy(() => import('./GobiernoTab'))
 const CulturaTab = lazy(() => import('./CulturaTab'))
 const RegionalComparison = lazy(() => import('./RegionalComparison'))
+const EmpleoTab = lazy(() => import('./EmpleoTab'))
 
 const TABS = [
   { id: 'overview', label: 'General' },
+  { id: 'empleo', label: 'Empleo' },
   { id: 'comparative', label: 'Comparativa' },
   { id: 'seguridad', label: 'Seguridad' },
   { id: 'educacion', label: 'Educacion' },
@@ -103,6 +105,7 @@ export default function SidePanel() {
       <div ref={contentRef} style={{ flex: 1, padding: 16 }}>
         {activePanel === 'overview' && <OverviewPanel summary={summary} />}
         <Suspense fallback={<SkeletonTab />}>
+          {activePanel === 'empleo' && <EmpleoTab />}
           {activePanel === 'comparative' && <RegionalComparison />}
           {activePanel === 'seguridad' && <SecurityChart />}
           {activePanel === 'educacion' && <IcfesChart />}

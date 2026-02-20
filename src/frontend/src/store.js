@@ -98,6 +98,8 @@ export const useStore = create((set, get) => ({
         gobiernoData: null,
         culturaData: null,
         crossvarVariables: null,
+        empleoData: null,
+        empleoKpis: null,
         errors: {},
       }))
 
@@ -138,6 +140,8 @@ export const useStore = create((set, get) => ({
   gobiernoData: null,
   culturaData: null,
   crossvarVariables: null,
+  empleoData: null,
+  empleoKpis: null,
   errors: {},
   selectedCategory: null,
   setSelectedCategory: (cat) => set({ selectedCategory: cat }),
@@ -346,6 +350,30 @@ export const useStore = create((set, get) => ({
       set({ crossvarVariables: await safeFetch(`${API}/crossvar/variables`) })
     } catch (e) {
       console.error('fetchCrossvarVariables:', e)
+    }
+  },
+  fetchEmpleo: async () => {
+    if (get().empleoData) return
+    try {
+      const [stats, serie, skills, salarios, sectores] = await Promise.all([
+        safeFetch(`${API}/empleo/stats`),
+        safeFetch(`${API}/empleo/serie-temporal`),
+        safeFetch(`${API}/empleo/skills`),
+        safeFetch(`${API}/empleo/salarios`),
+        safeFetch(`${API}/empleo/sectores`),
+      ])
+      set({ empleoData: { stats, serie, skills, salarios, sectores } })
+    } catch (e) {
+      console.error('fetchEmpleo:', e)
+      set((s) => ({ errors: { ...s.errors, empleo: e.message } }))
+    }
+  },
+  fetchEmpleoKpis: async () => {
+    if (get().empleoKpis) return
+    try {
+      set({ empleoKpis: await safeFetch(`${API}/empleo/kpis`) })
+    } catch (e) {
+      console.error('fetchEmpleoKpis:', e)
     }
   },
 }))
