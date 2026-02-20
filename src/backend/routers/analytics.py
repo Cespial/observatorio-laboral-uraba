@@ -2,8 +2,7 @@
 Módulo de Analítica Avanzada — Inteligencia Territorial y Laboral para Urabá
 """
 from fastapi import APIRouter, Query, HTTPException
-from ..database import engine, cached, query_dicts
-from sqlalchemy import text
+from ..database import cached, query_dicts
 
 router = APIRouter(prefix="/api/analytics", tags=["Analytics"])
 
@@ -141,52 +140,50 @@ def get_brecha_skills(dane_code: str = Query(None)):
 
     where = " AND ".join(conditions)
 
-    with engine.connect() as conn:
-        # Skills demand
-        skills = conn.execute(text(f"""
-            SELECT skill, COUNT(*) as demanda
-            FROM empleo.ofertas_laborales, UNNEST(skills) AS skill
-            WHERE {where}
-            GROUP BY skill
-            ORDER BY demanda DESC
-            LIMIT 20
-        """), params).fetchall()
+    # Use query_dicts for short-lived connections (Supabase transaction pooler)
+    skills = query_dicts(f"""
+        SELECT skill, COUNT(*) as demanda
+        FROM empleo.ofertas_laborales, UNNEST(skills) AS skill
+        WHERE {where}
+        GROUP BY skill
+        ORDER BY demanda DESC
+        LIMIT 20
+    """, params)
 
-        # Sector distribution of demand
-        sectores = conn.execute(text(f"""
-            SELECT sector, COUNT(*) as ofertas,
-                   COUNT(DISTINCT empresa) as empresas
-            FROM empleo.ofertas_laborales
-            WHERE {where}
-            GROUP BY sector
-            ORDER BY ofertas DESC
-        """), params).fetchall()
+    sectores = query_dicts(f"""
+        SELECT sector, COUNT(*) as ofertas,
+               COUNT(DISTINCT empresa) as empresas
+        FROM empleo.ofertas_laborales
+        WHERE {where}
+        GROUP BY sector
+        ORDER BY ofertas DESC
+    """, params)
 
-        # Education level indicators (from ICFES as proxy for human capital)
-        edu = conn.execute(text("""
-            SELECT
-                ROUND(AVG(punt_global)::numeric, 1) as icfes_promedio,
-                COUNT(DISTINCT cole_nombre) as colegios,
-                SUM(estudiantes) as total_estudiantes
-            FROM socioeconomico.icfes
-            WHERE punt_global IS NOT NULL
-        """)).fetchone()
+    edu = query_dicts("""
+        SELECT
+            ROUND(AVG(punt_global)::numeric, 1) as icfes_promedio,
+            COUNT(DISTINCT cole_nombre) as colegios,
+            SUM(estudiantes) as total_estudiantes
+        FROM socioeconomico.icfes
+        WHERE punt_global IS NOT NULL
+    """)
+    edu_row = edu[0] if edu else {}
 
-    total_demanda = sum(s[1] for s in skills)
+    total_demanda = sum(s["demanda"] for s in skills)
 
     return {
         "skills_demandadas": [
-            {"skill": s[0], "demanda": s[1], "pct": round(s[1] / total_demanda * 100, 1) if total_demanda > 0 else 0}
+            {"skill": s["skill"], "demanda": s["demanda"], "pct": round(s["demanda"] / total_demanda * 100, 1) if total_demanda > 0 else 0}
             for s in skills
         ],
         "sectores_con_demanda": [
-            {"sector": s[0], "ofertas": s[1], "empresas": s[2]}
+            {"sector": s["sector"], "ofertas": s["ofertas"], "empresas": s["empresas"]}
             for s in sectores
         ],
         "capital_humano": {
-            "icfes_promedio": float(edu[0]) if edu and edu[0] else None,
-            "colegios": edu[1] if edu else 0,
-            "estudiantes_evaluados": edu[2] if edu else 0,
+            "icfes_promedio": float(edu_row.get("icfes_promedio")) if edu_row.get("icfes_promedio") else None,
+            "colegios": edu_row.get("colegios", 0),
+            "estudiantes_evaluados": edu_row.get("total_estudiantes", 0),
         },
         "insights": _generate_skill_insights(skills, sectores),
     }
@@ -196,15 +193,21 @@ def _generate_skill_insights(skills, sectores):
     insights = []
     if skills:
         top = skills[0]
-        insights.append(f"La habilidad más demandada es {top[0]} con {top[1]} menciones en ofertas.")
+        name = top["skill"] if isinstance(top, dict) else top[0]
+        count = top["demanda"] if isinstance(top, dict) else top[1]
+        insights.append(f"La habilidad más demandada es {name} con {count} menciones en ofertas.")
     if sectores:
         top_sector = sectores[0]
-        insights.append(f"El sector con más demanda es {top_sector[0]} con {top_sector[1]} ofertas de {top_sector[2]} empresas.")
+        s_name = top_sector["sector"] if isinstance(top_sector, dict) else top_sector[0]
+        s_ofertas = top_sector["ofertas"] if isinstance(top_sector, dict) else top_sector[1]
+        s_empresas = top_sector["empresas"] if isinstance(top_sector, dict) else top_sector[2]
+        insights.append(f"El sector con más demanda es {s_name} con {s_ofertas} ofertas de {s_empresas} empresas.")
 
     # Check for tech skills
-    tech_skills = [s for s in skills if s[0] in ('Python', 'SQL', 'SAP', 'Excel')]
+    tech_names = ('Python', 'SQL', 'SAP', 'Excel')
+    tech_skills = [s for s in skills if (s["skill"] if isinstance(s, dict) else s[0]) in tech_names]
     if tech_skills:
-        total_tech = sum(s[1] for s in tech_skills)
+        total_tech = sum(s["demanda"] if isinstance(s, dict) else s[1] for s in tech_skills)
         insights.append(f"Las habilidades tecnológicas (Excel, SAP, SQL, Python) aparecen en {total_tech} ofertas.")
 
     return insights
