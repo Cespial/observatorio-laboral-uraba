@@ -6,7 +6,8 @@ import { GeoJsonLayer, ScatterplotLayer } from '@deck.gl/layers'
 import { HeatmapLayer } from '@deck.gl/aggregation-layers'
 import { useStore } from '../store'
 
-const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+const MAP_STYLE = 'mapbox://styles/mapbox/light-v11'
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || ''
 
 const CATEGORY_COLORS = {
   'Restaurantes': [250, 140, 22],
@@ -240,6 +241,7 @@ export default function MapView() {
       >
         <Map
           mapStyle={MAP_STYLE}
+          mapboxAccessToken={MAPBOX_TOKEN}
           reuseMaps
         />
       </DeckGL>
