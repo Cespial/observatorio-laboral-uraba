@@ -4,528 +4,82 @@ Endpoints de indicadores socioeconómicos, educativos, seguridad
 from fastapi import APIRouter, Query, HTTPException
 from ..database import engine, query_dicts
 from sqlalchemy import text
-import json
 
 router = APIRouter(prefix="/api/indicators", tags=["Indicadores"])
 
+# Nombres de tablas estandarizados (sin _raw)
+TABLES = {
+    "icfes": "socioeconomico.icfes",
+    "homicidios": "seguridad.homicidios",
+    "hurtos": "seguridad.hurtos",
+    "delitos_sexuales": "seguridad.delitos_sexuales",
+    "vif": "seguridad.violencia_intrafamiliar",
+    "victimas": "seguridad.victimas_conflicto",
+    "colegios": "socioeconomico.establecimientos_educativos",
+    "ips": "socioeconomico.ips_salud",
+    "places": "servicios.google_places_regional"
+}
 
 INDICATORS_CATALOG = [
-    {
-        "id": "icfes_global",
-        "name": "Puntaje ICFES Global",
-        "description": "Puntaje global promedio Saber 11 por colegio y periodo",
-        "source": "ICFES via datos.gov.co",
-        "unit": "puntos (0-500)",
-        "category": "educacion",
-    },
-    {
-        "id": "icfes_matematicas",
-        "name": "Puntaje ICFES Matemáticas",
-        "description": "Puntaje promedio de matemáticas Saber 11",
-        "source": "ICFES via datos.gov.co",
-        "unit": "puntos (0-100)",
-        "category": "educacion",
-    },
-    {
-        "id": "icfes_lectura",
-        "name": "Puntaje ICFES Lectura Crítica",
-        "description": "Puntaje promedio de lectura crítica Saber 11",
-        "source": "ICFES via datos.gov.co",
-        "unit": "puntos (0-100)",
-        "category": "educacion",
-    },
-    {
-        "id": "homicidios",
-        "name": "Homicidios",
-        "description": "Total de homicidios por año",
-        "source": "Min. Defensa via datos.gov.co",
-        "unit": "casos",
-        "category": "seguridad",
-    },
-    {
-        "id": "hurtos",
-        "name": "Hurtos",
-        "description": "Total de hurtos por año y tipo",
-        "source": "DIJIN via datos.gov.co",
-        "unit": "casos",
-        "category": "seguridad",
-    },
-    {
-        "id": "delitos_sexuales",
-        "name": "Delitos Sexuales",
-        "description": "Total de delitos sexuales por año",
-        "source": "DIJIN via datos.gov.co",
-        "unit": "casos",
-        "category": "seguridad",
-    },
-    {
-        "id": "violencia_intrafamiliar",
-        "name": "Violencia Intrafamiliar",
-        "description": "Total de casos de VIF por año",
-        "source": "DIJIN via datos.gov.co",
-        "unit": "casos",
-        "category": "seguridad",
-    },
-    {
-        "id": "victimas_conflicto",
-        "name": "Víctimas del Conflicto",
-        "description": "Personas afectadas por el conflicto armado por hecho victimizante",
-        "source": "Unidad de Víctimas via datos.gov.co",
-        "unit": "personas",
-        "category": "conflicto",
-    },
-    {
-        "id": "poblacion_manzana",
-        "name": "Población por Manzana",
-        "description": "Total de personas por manzana censal",
-        "source": "DANE Censo 2018 / MGN",
-        "unit": "personas",
-        "category": "demografia",
-    },
-    {
-        "id": "establecimientos_educativos",
-        "name": "Establecimientos Educativos",
-        "description": "Colegios y sedes educativas con matrícula",
-        "source": "MEN via datos.gov.co",
-        "unit": "establecimientos",
-        "category": "educacion",
-    },
-    {
-        "id": "ips_salud",
-        "name": "IPS / Instituciones de Salud",
-        "description": "Instituciones prestadoras de servicios de salud habilitadas",
-        "source": "Min. Salud REPS via datos.gov.co",
-        "unit": "sedes",
-        "category": "salud",
-    },
-    {
-        "id": "places_economia",
-        "name": "Establecimientos Comerciales",
-        "description": "Negocios por categoría (restaurantes, bancos, tiendas, etc)",
-        "source": "Google Places API",
-        "unit": "establecimientos",
-        "category": "economia",
-    },
+    {"id": "icfes_global", "name": "Puntaje ICFES Global", "category": "educacion"},
+    {"id": "homicidios", "name": "Homicidios", "category": "seguridad"},
+    {"id": "hurtos", "name": "Hurtos", "category": "seguridad"},
+    {"id": "victimas_conflicto", "name": "Víctimas del Conflicto", "category": "seguridad"},
+    {"id": "establecimientos_educativos", "name": "Colegios", "category": "educacion"},
+    {"id": "ips_salud", "name": "IPS / Salud", "category": "salud"},
+    {"id": "places_economia", "name": "Comercio y Servicios", "category": "economia"},
 ]
-
 
 @router.get("")
 def list_indicators():
-    """Listar todos los indicadores disponibles."""
     return INDICATORS_CATALOG
-
 
 @router.get("/icfes")
 def get_icfes(
-    dane_code: str = Query(None, description="Filtrar por código DANE del municipio"),
-    periodo: str = Query(None, description="Filtrar por periodo (ej: '20224')"),
-    colegio: str = Query(None, description="Filtrar por nombre de colegio"),
-    aggregate: str = Query("colegio", description="Nivel de agregación: 'colegio', 'periodo', 'genero'"),
+    dane_code: str = Query(None),
+    aggregate: str = Query("colegio")
 ):
-    """Resultados ICFES Saber 11 con múltiples niveles de agregación."""
-    conditions = ["1=1"]
-    params = {}
+    table = TABLES["icfes"]
+    cond = ["1=1"]
+    params = {"dane": dane_code}
+    if dane_code: cond.append("dane_code = :dane")
     
-    if dane_code:
-        conditions.append("cole_cod_mcpio_ubicacion = :dane")
-        params["dane"] = dane_code
-    if periodo:
-        conditions.append("periodo = :p")
-        params["p"] = periodo
-    if colegio:
-        conditions.append("cole_nombre_establecimiento ILIKE :c")
-        params["c"] = f"%{colegio}%"
+    where = " AND ".join(cond)
     
-    where = " AND ".join(conditions)
-
     if aggregate == "periodo":
-        sql = f"""
-            SELECT periodo,
-                   COUNT(*) as estudiantes,
-                   AVG(CAST(punt_global AS FLOAT)) as prom_global,
-                   AVG(CAST(punt_matematicas AS FLOAT)) as prom_matematicas,
-                   AVG(CAST(punt_lectura_critica AS FLOAT)) as prom_lectura
-            FROM socioeconomico.icfes_raw
-            WHERE {where}
-            GROUP BY periodo
-            ORDER BY periodo
-        """
-    elif aggregate == "genero":
-        sql = f"""
-            SELECT estu_genero as genero, periodo,
-                   COUNT(*) as estudiantes,
-                   AVG(CAST(punt_global AS FLOAT)) as prom_global,
-                   AVG(CAST(punt_matematicas AS FLOAT)) as prom_matematicas
-            FROM socioeconomico.icfes_raw
-            WHERE {where} AND estu_genero IS NOT NULL
-            GROUP BY estu_genero, periodo
-            ORDER BY periodo, genero
-        """
+        sql = f"SELECT periodo, COUNT(*) as estudiantes, AVG(punt_global) as prom_global FROM {table} WHERE {where} GROUP BY periodo ORDER BY periodo"
     else:
-        sql = f"""
-            SELECT cole_nombre_establecimiento as colegio, periodo,
-                   COUNT(*) as estudiantes,
-                   AVG(CAST(punt_global AS FLOAT)) as prom_global,
-                   AVG(CAST(punt_matematicas AS FLOAT)) as prom_matematicas,
-                   AVG(CAST(punt_lectura_critica AS FLOAT)) as prom_lectura
-            FROM socioeconomico.icfes_raw
-            WHERE {where}
-            GROUP BY cole_nombre_establecimiento, periodo
-            ORDER BY periodo DESC, prom_global DESC
-        """
-    return query_dicts(sql, params)
-
+        sql = f"SELECT cole_nombre as colegio, periodo, AVG(punt_global) as prom_global FROM {table} WHERE {where} GROUP BY cole_nombre, periodo ORDER BY prom_global DESC"
+    
+    try: return query_dicts(sql, params)
+    except: return []
 
 @router.get("/seguridad/serie")
-def get_seguridad_serie(
-    dane_code: str = Query(None, description="Filtrar por código DANE del municipio"),
-    tipo: str = Query("homicidios", description="homicidios, hurtos, delitos_sexuales, violencia_intrafamiliar"),
-):
-    """Serie temporal de delitos por año."""
-    table_map = {
-        "homicidios": "seguridad.homicidios_raw",
-        "hurtos": "seguridad.hurtos_raw",
-        "delitos_sexuales": "seguridad.delitos_sexuales_raw",
-        "violencia_intrafamiliar": "seguridad.violencia_intrafamiliar_raw",
-    }
-    table = table_map.get(tipo)
-    if not table:
-        raise HTTPException(status_code=400, detail=f"Tipo '{tipo}' no válido.")
-
-    conditions = ["fecha_hecho IS NOT NULL"]
-    params = {}
-    if dane_code:
-        conditions.append("codigo_dane = :dane")
-        params["dane"] = dane_code
+def get_seguridad_serie(tipo: str = "homicidios", dane_code: str = Query(None)):
+    table = TABLES.get(tipo, TABLES["homicidios"])
+    cond = ["1=1"]
+    params = {"dane": dane_code}
+    if dane_code: cond.append("dane_code = :dane")
     
-    where = " AND ".join(conditions)
-
-    sql = f"""
-        SELECT EXTRACT(YEAR FROM fecha_hecho)::int as anio,
-               SUM(CAST(cantidad AS INT)) as total,
-               sexo
-        FROM {table}
-        WHERE {where}
-        GROUP BY anio, sexo
-        ORDER BY anio, sexo
-    """
-    return query_dicts(sql, params)
-
-
-@router.get("/seguridad/resumen")
-def get_seguridad_resumen(
-    dane_code: str = Query(None, description="Filtrar por código DANE del municipio")
-):
-    """Resumen de todos los indicadores de seguridad."""
-    tables = {
-        "homicidios": "seguridad.homicidios_raw",
-        "hurtos": "seguridad.hurtos_raw",
-        "delitos_sexuales": "seguridad.delitos_sexuales_raw",
-        "violencia_intrafamiliar": "seguridad.violencia_intrafamiliar_raw",
-    }
-    result = {}
-    params = {"dane": dane_code} if dane_code else {}
-    where = "WHERE codigo_dane = :dane" if dane_code else ""
-    
-    with engine.connect() as conn:
-        for name, table in tables.items():
-            row = conn.execute(text(f"""
-                SELECT COUNT(*) as registros,
-                       SUM(CAST(cantidad AS INT)) as total_casos
-                FROM {table}
-                {where}
-            """), params).fetchone()
-            result[name] = {
-                "registros": row[0],
-                "total_casos": row[1]
-            }
-    return result
-
+    sql = f"SELECT EXTRACT(YEAR FROM fecha)::int as anio, SUM(cantidad) as total FROM {table} WHERE {' AND '.join(cond)} GROUP BY anio ORDER BY anio"
+    try: return query_dicts(sql, params)
+    except: return []
 
 @router.get("/terridata")
-def get_terridata(
-    dane_code: str = Query(None, description="Filtrar por código DANE (ej: 05045)"),
-    dimension: str = Query(None, description="Dimension (Salud, Economía, Finanzas públicas, etc.)"),
-    indicador: str = Query(None, description="Filtrar por nombre de indicador"),
-):
-    """Indicadores TerriData DNP por municipio o agregados regionalmente."""
-    conditions = ["1=1"]
-    params = {}
+def get_terridata(dane_code: str = Query(None), dimension: str = Query(None)):
+    cond = ["1=1"]
+    params = {"dane": dane_code, "dim": dimension}
+    if dane_code: cond.append("dane_code = :dane")
+    if dimension: cond.append("dimension = :dim")
     
-    if dane_code:
-        conditions.append("codigo_municipio = :dane")
-        params["dane"] = dane_code
-        
-    if dimension:
-        conditions.append("dimension = :d")
-        params["d"] = dimension
-    if indicador:
-        conditions.append("indicador ILIKE :i")
-        params["i"] = f"%{indicador}%"
-        
-    where = " AND ".join(conditions)
-    
-    # Si no hay dane_code, promediamos los valores por indicador y año para la región
-    if not dane_code:
-        sql = f"""
-            SELECT dimension, subcategoria, indicador,
-                   AVG(dato_numerico) as dato_numerico, 
-                   anio, unidad_de_medida, 'Promedio Regional' as fuente
-            FROM socioeconomico.terridata
-            WHERE {where}
-            GROUP BY dimension, subcategoria, indicador, anio, unidad_de_medida
-            ORDER BY dimension, indicador, anio
-        """
-    else:
-        sql = f"""
-            SELECT dimension, subcategoria, indicador,
-                   dato_numerico, dato_cualitativo, anio,
-                   fuente, unidad_de_medida
-            FROM socioeconomico.terridata
-            WHERE {where}
-            ORDER BY dimension, indicador, anio
-        """
-    return query_dicts(sql, params)
+    sql = f"SELECT indicador, dato_numerico, anio, unidad_de_medida FROM socioeconomico.terridata WHERE {' AND '.join(cond)} ORDER BY anio DESC"
+    try: return query_dicts(sql, params)
+    except: return []
 
-
-@router.get("/salud/irca")
-def get_irca():
-    """Indice de Riesgo de la Calidad del Agua (IRCA) por año."""
-    sql = """
-        SELECT a_o::int as anio,
-               CASE WHEN irca ~ '^[0-9.]+$' THEN irca::float ELSE NULL END as irca_total,
-               nivel_de_riesgo,
-               CASE WHEN ircaurbano ~ '^[0-9.]+$' THEN ircaurbano::float ELSE NULL END as irca_urbano,
-               nivel_de_riesgo_urbano,
-               CASE WHEN ircarural ~ '^[0-9.]+$' THEN ircarural::float ELSE NULL END as irca_rural,
-               nivel_de_riesgo_rural
-        FROM socioeconomico.irca_raw
-        ORDER BY a_o::int
-    """
-    return query_dicts(sql)
-
-
-@router.get("/salud/sivigila")
-def get_sivigila(
-    anio: int = Query(None, description="Filtrar por año"),
-):
-    """Eventos epidemiologicos SIVIGILA agregados."""
-    conditions = ["1=1"]
-    params = {}
-    if anio:
-        conditions.append("ano::int = :a")
-        params["a"] = anio
-    where = " AND ".join(conditions)
-    sql = f"""
-        SELECT nombre as evento,
-               ano::int as anio,
-               SUM(conteo_casos::int) as casos
-        FROM socioeconomico.sivigila_raw
-        WHERE {where}
-        GROUP BY nombre, ano
-        ORDER BY ano, casos DESC
-    """
-    return query_dicts(sql, params)
-
-
-@router.get("/salud/sivigila/resumen")
-def get_sivigila_resumen():
-    """Top eventos epidemiologicos SIVIGILA todos los años."""
-    sql = """
-        SELECT nombre as evento,
-               SUM(conteo_casos::int) as total_casos,
-               COUNT(DISTINCT ano) as anios
-        FROM socioeconomico.sivigila_raw
-        GROUP BY nombre
-        ORDER BY total_casos DESC
-    """
-    return query_dicts(sql)
-
-
-@router.get("/economia/internet")
-def get_internet():
-    """Accesos a Internet Fijo por año y segmento."""
-    sql = """
-        SELECT anno::int as anio,
-               segmento,
-               SUM(no_de_accesos::int) as accesos,
-               COUNT(DISTINCT proveedor) as proveedores
-        FROM servicios.internet_fijo_raw
-        WHERE no_de_accesos ~ '^[0-9]+'
-        GROUP BY anno, segmento
-        ORDER BY anno, accesos DESC
-    """
-    return query_dicts(sql)
-
-
-@router.get("/economia/internet/serie")
-def get_internet_serie():
-    """Serie anual total de accesos a Internet Fijo."""
-    sql = """
-        SELECT anno::int as anio,
-               SUM(no_de_accesos::int) as total_accesos,
-               COUNT(DISTINCT proveedor) as proveedores,
-               COUNT(DISTINCT segmento) as segmentos
-        FROM servicios.internet_fijo_raw
-        WHERE no_de_accesos ~ '^[0-9]+'
-        GROUP BY anno
-        ORDER BY anno
-    """
-    return query_dicts(sql)
-
-
-@router.get("/economia/secop")
-def get_secop_resumen():
-    """Resumen de contratacion publica SECOP."""
-    sql = """
-        SELECT tipo_de_contrato,
-               COUNT(*) as contratos,
-               SUM(CASE WHEN valor_contrato ~ '^[0-9.]+$'
-                   THEN valor_contrato::numeric ELSE 0 END) as valor_total,
-               AVG(CASE WHEN valor_contrato ~ '^[0-9.]+$'
-                   THEN valor_contrato::numeric ELSE NULL END) as valor_promedio
-        FROM servicios.secop_raw
-        GROUP BY tipo_de_contrato
-        ORDER BY contratos DESC
-    """
-    return query_dicts(sql)
-
-
-@router.get("/economia/turismo")
-def get_turismo():
-    """Establecimientos turisticos RNT."""
-    with engine.connect() as conn:
-        total_row = conn.execute(text("""
-            SELECT COUNT(*) as total,
-                   COUNT(DISTINCT categoria) as categorias
-            FROM servicios.rnt_turismo_raw
-        """)).fetchone()
-
-        rows = conn.execute(text("""
-            SELECT categoria, COUNT(*) as establecimientos
-            FROM servicios.rnt_turismo_raw
-            WHERE categoria IS NOT NULL
-            GROUP BY categoria
-            ORDER BY establecimientos DESC
-        """)).fetchall()
-
-    return {
-        "total": total_row[0],
-        "categorias": total_row[1],
-        "detalle": [{"categoria": r[0], "establecimientos": r[1]} for r in rows],
-    }
-
-
-@router.get("/economia/agricola")
-def get_agricola():
-    """Evaluaciones agropecuarias EVA."""
-    sql = """
-        SELECT * FROM socioeconomico.eva_agricola_raw
-        ORDER BY 1
-        LIMIT 200
-    """
-    return query_dicts(sql)
-
-
-@router.get("/gobierno/finanzas")
-def get_finanzas():
-    """Indicadores de finanzas publicas de TerriData."""
-    key_indicators = [
-        'Ingresos totales', 'Gastos totales',
-        'Ingresos tributarios', 'Gastos corrientes',
-        'Gastos de capital (Inversión)',
-        'Indicador de desempeño fiscal',
-        'Ingresos totales per cápita', 'Gastos totales per cápita',
-        'Capacidad de ahorro', 'Dependencia de las transferencias',
-    ]
-    placeholders = ", ".join([f":p{i}" for i in range(len(key_indicators))])
-    params = {f"p{i}": v for i, v in enumerate(key_indicators)}
-    sql = f"""
-        SELECT indicador, dato_numerico, anio, unidad_de_medida, fuente
-        FROM socioeconomico.terridata
-        WHERE dimension = 'Finanzas públicas'
-          AND indicador IN ({placeholders})
-        ORDER BY indicador, anio
-    """
-    return query_dicts(sql, params)
-
-
-@router.get("/gobierno/desempeno")
-def get_desempeno():
-    """Medicion de Desempeno Municipal (MDM) de TerriData."""
-    sql = """
-        SELECT indicador, dato_numerico, dato_cualitativo, anio,
-               unidad_de_medida, fuente
-        FROM socioeconomico.terridata
-        WHERE dimension = 'Medición de desempeño municipal'
-        ORDER BY indicador, anio
-    """
-    return query_dicts(sql)
-
-
-@router.get("/gobierno/digital")
-def get_gobierno_digital():
-    """Indice de Gobierno Digital."""
-    sql = """
-        SELECT vigencia::int as anio, ndice as indice,
-               puntaje_entidad::float as puntaje,
-               promedio_grupo_par::float as promedio_grupo,
-               m_ximo_grupo_par::float as m_ximo_grupo,
-               m_nimo_grupo_par::float as m_nimo_grupo,
-               quintil_grupo_par as quintil,
-               percentil_grupo_par as percentil
-        FROM socioeconomico.gobierno_digital_raw
-        ORDER BY vigencia, ndice
-    """
-    return query_dicts(sql)
-
-
-@router.get("/gobierno/pobreza")
-def get_pobreza():
-    """Indicadores de pobreza (IPM, NBI) de TerriData."""
-    terridata = query_dicts("""
-        SELECT indicador, dato_numerico, anio, unidad_de_medida, fuente
-        FROM socioeconomico.terridata
-        WHERE dimension = 'Pobreza'
-        ORDER BY indicador, anio
-    """)
-
-    ipm = query_dicts("""
-        SELECT * FROM socioeconomico.ipm_raw LIMIT 30
-    """)
-
-    return {"terridata": terridata, "ipm_detalle": ipm}
-
-
-# ── Cultura ──────────────────────────────────────────────────────
-@router.get("/cultura/espacios")
-def get_espacios_culturales():
-    """Espacios culturales registrados en Apartadó."""
-    return query_dicts("""
-        SELECT tipo_lugar, nombre_del_lugar AS nombre, descripci_n AS descripcion,
-               direcci_n_f_sica AS direccion, latitud, longitud, fuente
-        FROM servicios.espacios_culturales_raw
-        ORDER BY tipo_lugar, nombre_del_lugar
-    """)
-
-
-@router.get("/cultura/turismo-detalle")
-def get_turismo_detalle():
-    """Establecimientos turísticos con detalle (RNT)."""
-    rows = query_dicts("""
-        SELECT razon_social_establecimiento AS nombre, categoria, sub_categoria,
-               CAST(NULLIF(habitaciones,'') AS INT) AS habitaciones,
-               CAST(NULLIF(camas,'') AS INT) AS camas,
-               CAST(NULLIF(num_emp1,'') AS INT) AS empleados,
-               estado_rnt AS estado, ano
-        FROM servicios.rnt_turismo_raw
-        ORDER BY categoria, razon_social_establecimiento
-    """)
-    by_cat = {}
-    for r in rows:
-        cat = r["categoria"] or "Otro"
-        by_cat.setdefault(cat, []).append(r)
-    return {
-        "total": len(rows),
-        "por_categoria": {k: {"count": len(v), "establecimientos": v} for k, v in by_cat.items()},
-    }
+@router.get("/victimas")
+def get_victimas(dane_code: str = Query(None)):
+    params = {"dane": dane_code}
+    where = "WHERE dane_code = :dane" if dane_code else ""
+    sql = f"SELECT hecho as dimension, SUM(personas) as personas FROM seguridad.victimas_conflicto {where} GROUP BY hecho ORDER BY personas DESC"
+    try: return query_dicts(sql, params)
+    except: return []

@@ -132,4 +132,5 @@ def save_places_to_db(data, engine):
             })
 
 if __name__ == "__main__":
+    print("🚀 Iniciando motor de scraping regional...")
     scrape_google_places_regional()
