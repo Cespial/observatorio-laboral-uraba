@@ -11,9 +11,9 @@ from .config import DATABASE_URL
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=10,
-    pool_recycle=300,
+    pool_size=2,
+    max_overflow=3,
+    pool_recycle=120,
 )
 
 # SQLite Connection (Employment Data)
