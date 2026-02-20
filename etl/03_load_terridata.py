@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 ETL 03 - Load TerriData Excel into PostgreSQL (Regional Urabá)
+Fixed version with correct scoping and table creation.
 """
 
 import pandas as pd
@@ -34,7 +35,6 @@ COL_MAP = {
     "Unidad de Medida": "unidad_de_medida",
 }
 
-
 def parse_spanish_number(val):
     if pd.isna(val): return np.nan
     if isinstance(val, (int, float)): return float(val)
@@ -42,20 +42,25 @@ def parse_spanish_number(val):
     try: return float(s)
     except ValueError: return np.nan
 
-
 def load_file(engine, file_path, dane_code):
     print(f"Reading {file_path} for {dane_code}...")
-    df = pd.read_excel(file_path, sheet_name=SHEET_NAME)
+    try:
+        df = pd.read_excel(file_path, sheet_name=SHEET_NAME)
+    except Exception as e:
+        # Try without sheet name if fail
+        print(f"  Warning: failed to read sheet '{SHEET_NAME}', trying first sheet. {e}")
+        df = pd.read_excel(file_path)
     
     # Clean
     df = df[df["Código Entidad"].notna()].reset_index(drop=True)
     df.rename(columns=COL_MAP, inplace=True)
     
     df["dato_numerico"] = df["dato_numerico"].apply(parse_spanish_number)
-    df["dane_code"] = dane_code
+    df["dane_code"] = str(dane_code).zfill(5)
     
-    for col in ["codigo_departamento", "codigo_entidad", "anio", "mes"]:
-        df[col] = pd.to_numeric(df[col], errors="coerce").astype("Int64")
+    # Select only columns we want
+    cols_to_keep = list(COL_MAP.values()) + ["dane_code"]
+    df = df[[c for c in df.columns if c in cols_to_keep]]
 
     df.to_sql(
         TABLE, engine, schema=SCHEMA, if_exists="append", index=False,
@@ -63,12 +68,16 @@ def load_file(engine, file_path, dane_code):
     )
     print(f"  Inserted {len(df)} rows.")
 
-
 def main():
+    if not DB_URL:
+        print("Error: DB_URL not set.")
+        return
+        
     engine = create_engine(DB_URL)
     
     # Create table with dane_code
     ddl = f"""
+    CREATE SCHEMA IF NOT EXISTS {SCHEMA};
     DROP TABLE IF EXISTS {FULL_TABLE} CASCADE;
     CREATE TABLE {FULL_TABLE} (
         id                  SERIAL,
@@ -89,60 +98,34 @@ def main():
         PRIMARY KEY (id, dane_code)
     );
     CREATE INDEX idx_terridata_dane ON {FULL_TABLE} (dane_code);
+    CREATE INDEX idx_terridata_ind ON {FULL_TABLE} (indicador);
+    CREATE INDEX idx_terridata_dim ON {FULL_TABLE} (dimension);
     """
     with engine.begin() as conn:
         conn.execute(text(ddl))
 
     for dane_code, name, _ in MUNICIPIOS:
-        # Search for file like TerriData05045f.xlsx
-        files = list(DATA_DIR.glob(f"*{dane_code}*.xls*"))
+        # Search for file like TerriData05045f.xlsx or 05045.xlsx
+        files = list(DATA_DIR.glob(f"*{dane_code}*"))
         if not files:
             print(f"  [SKIP] No file found for {name} ({dane_code})")
             continue
             
         for f in files:
-            try:
-                load_file(engine, f, dane_code)
-            except Exception as e:
-                print(f"  [ERROR] Loading {f}: {e}")
+            if f.suffix in ['.xlsx', '.xls']:
+                try:
+                    load_file(engine, f, dane_code)
+                except Exception as e:
+                    print(f"  [ERROR] Loading {f}: {e}")
 
-    print("Done.")
-
-if __name__ == "__main__":
-    main()
-
-    # -- 9. Summary stats ----------------------------------------------------
-    with engine.connect() as conn:
-        row_count = conn.execute(
-            text("SELECT count(*) FROM " + FULL_TABLE)
-        ).scalar()
-        dims = conn.execute(
-            text("SELECT DISTINCT dimension FROM " + FULL_TABLE + " ORDER BY 1")
-        ).fetchall()
-        year_range = conn.execute(
-            text("SELECT min(anio), max(anio) FROM " + FULL_TABLE)
-        ).fetchone()
-        top_indicators = conn.execute(
-            text(
-                "SELECT indicador, count(*) AS n FROM " + FULL_TABLE
-                + " GROUP BY indicador ORDER BY n DESC LIMIT 10"
-            )
-        ).fetchall()
-
+    # Final summary
     print("\n" + "=" * 70)
-    print("SUMMARY")
+    print("  TERRIDATA LOAD COMPLETE")
     print("=" * 70)
-    print("Total rows loaded:  " + str(row_count))
-    print("Year range:         " + str(year_range[0]) + " - " + str(year_range[1]))
-    print("Distinct dimensions (" + str(len(dims)) + "):")
-    for d in dims:
-        print("  - " + str(d[0]))
-    print("\nTop 10 indicators by row count:")
-    for ind, n in top_indicators:
-        print("  %5d  %s" % (n, ind))
+    with engine.connect() as conn:
+        count = conn.execute(text(f"SELECT COUNT(*) FROM {FULL_TABLE}")).scalar()
+        print(f"  Total records loaded: {count}")
     print("=" * 70)
-    print("Done.")
-
 
 if __name__ == "__main__":
     main()
