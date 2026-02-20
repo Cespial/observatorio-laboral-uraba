@@ -50,6 +50,7 @@ export default function MapView() {
   const layerData = useStore((s) => s.layerData)
   const fetchLayerGeoJSON = useStore((s) => s.fetchLayerGeoJSON)
   const fetchManzanas = useStore((s) => s.fetchManzanas)
+  const fetchVeredas = useStore((s) => s.fetchVeredas)
   const fetchPlaces = useStore((s) => s.fetchPlaces)
   const fetchPlacesHeatmap = useStore((s) => s.fetchPlacesHeatmap)
   const selectedCategory = useStore((s) => s.selectedCategory)
@@ -59,9 +60,10 @@ export default function MapView() {
     fetchLayerGeoJSON('osm_edificaciones')
     fetchLayerGeoJSON('osm_vias')
     fetchManzanas()
+    fetchVeredas()
     fetchPlaces()
     fetchPlacesHeatmap()
-  }, [fetchLayerGeoJSON, fetchManzanas, fetchPlaces, fetchPlacesHeatmap])
+  }, [fetchLayerGeoJSON, fetchManzanas, fetchVeredas, fetchPlaces, fetchPlacesHeatmap])
 
   const onViewStateChange = useCallback(
     ({ viewState: vs }) => {
@@ -84,6 +86,22 @@ export default function MapView() {
           getLineColor: [0, 80, 179],
           getLineWidth: 2.5,
           lineWidthUnits: 'pixels',
+        }),
+      )
+    }
+
+    if (activeLayers.includes('veredas_mgn') && layerData.veredas_mgn) {
+      result.push(
+        new GeoJsonLayer({
+          id: 'veredas_mgn',
+          data: layerData.veredas_mgn,
+          filled: true,
+          stroked: true,
+          getFillColor: [0, 120, 255, 20],
+          getLineColor: [0, 80, 179, 100],
+          getLineWidth: 1,
+          lineWidthUnits: 'pixels',
+          pickable: true,
         }),
       )
     }

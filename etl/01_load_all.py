@@ -296,10 +296,10 @@ def main():
     for dane_code, name, bbox in MUNICIPIOS:
         # Cartografía
         load_limite_municipal(dane_code, name, bbox)
-        load_osm_layer("edificaciones", "{name}_buildings.json", "osm_edificaciones", dane_code, name)
-        load_osm_layer("vias", "{name}_roads.json", "osm_vias", dane_code, name)
-        load_osm_layer("uso_suelo", "{name}_landuse.json", "osm_uso_suelo", dane_code, name)
-        load_osm_layer("amenidades", "{name}_amenities.json", "osm_amenidades", dane_code, name)
+        load_osm_layer("edificaciones", "{name}_buildings.json", "osm_edificaciones", dane_code, name, bbox)
+        load_osm_layer("vias", "{name}_roads.json", "osm_vias", dane_code, name, bbox)
+        load_osm_layer("uso_suelo", "{name}_landuse.json", "osm_uso_suelo", dane_code, name, bbox)
+        load_osm_layer("amenidades", "{name}_amenities.json", "osm_amenidades", dane_code, name, bbox)
         
         # MGN
         load_mgn_manzanas(dane_code, name, bbox)
@@ -926,19 +926,18 @@ def main():
     print("  ETL PIPELINE — OBSERVATORIO REGIONAL URABÁ")
     print("=" * 70)
 
-    # Inicializar Base de Datos (Limpiar y Recrear Schema)
+    # Inicializar Base de Datos (Crear Esquemas si no existen)
     try:
         with engine.connect() as conn:
-            for schema in ['cartografia', 'catastro', 'socioeconomico', 'seguridad', 'servicios']:
-                conn.execute(text(f"DROP SCHEMA IF EXISTS {schema} CASCADE"))
-                conn.execute(text(f"CREATE SCHEMA {schema}"))
+            for schema in ['cartografia', 'catastro', 'socioeconomico', 'seguridad', 'servicios', 'ambiental']:
+                conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
             conn.commit()
         
-        # Cargar Schema Base
+        # Cargar Schema Base (Tablas)
         with open(BASE_DIR / "etl" / "00_schema.sql") as f:
             with engine.begin() as conn:
                 conn.execute(text(f.read()))
-        log("Esquema de base de datos inicializado: OK")
+        log("Esquema de base de datos verificado: OK")
     except Exception as e:
         log(f"Error inicializando DB: {e}")
         return

@@ -23,12 +23,10 @@ def scrape_google_places_regional():
         query = """
             SELECT dane_code, 
                    ST_X(ST_Centroid(geom)) as lon, 
-                   ST_Y(ST_Centroid(geom)) as lat,
-                   MPIO_CCDGO,
-                   DPTO_CCDGO
+                   ST_Y(ST_Centroid(geom)) as lat
             FROM cartografia.veredas_mgn
         """
-        df_veredas = pd.read_sql(query, conn)
+        df_veredas = pd.read_sql(text(query), conn)
     
     print(f"Total veredas a procesar: {len(df_veredas)}")
     
@@ -91,8 +89,12 @@ def scrape_google_places_regional():
     print(f"Scraping completado. Total lugares únicos encontrados: {len(processed_place_ids)}")
 
 def save_places_to_db(data, engine):
-    df = pd.DataFrame(data)
+    # Limpieza de datos: convertir NaN a None para SQL
+    df = pd.DataFrame(data).replace({pd.NA: None, float('nan'): None})
+    
     with engine.begin() as conn:
+        # Crear esquema si no existe
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS servicios;"))
         # Crear tabla si no existe
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS servicios.google_places_regional (
@@ -112,6 +114,9 @@ def save_places_to_db(data, engine):
         
         # Insertar datos usando ON CONFLICT para actualizar
         for _, row in df.iterrows():
+            # Asegurar que urt sea entero o None
+            urt = int(row.user_ratings_total) if row.user_ratings_total is not None else None
+            
             conn.execute(text("""
                 INSERT INTO servicios.google_places_regional 
                 (place_id, name, category, address, rating, user_ratings_total, lat, lon, dane_code, geom)
@@ -121,8 +126,8 @@ def save_places_to_db(data, engine):
                     user_ratings_total = EXCLUDED.user_ratings_total,
                     updated_at = CURRENT_TIMESTAMP;
             """), {
-                "pid": row.place_id, "name": row.name, "cat": row.category, 
-                "addr": row.address, "rat": row.rating, "urt": row.user_ratings_total,
+                "pid": row.place_id, "name": str(row.name), "cat": row.category, 
+                "addr": row.address, "rat": row.rating, "urt": urt,
                 "lat": row.lat, "lon": row.lon, "dane": row.dane_code
             })
 

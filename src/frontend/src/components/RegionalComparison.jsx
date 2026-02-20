@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { useStore } from '../store'
 
@@ -17,6 +18,18 @@ const MOCK_REGIONAL_DATA = [
 
 export default function RegionalComparison() {
   const selectedMunicipio = useStore(s => s.selectedMunicipio)
+  const [icfesRanking, setIcfesRanking] = useState([])
+
+  useEffect(() => {
+    fetch('/api/analytics/ranking?indicador=Puntaje+global+promedio+Saber+11')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setIcfesRanking(data.map(d => ({ name: d.municipio, icfes: d.valor })))
+        }
+      })
+      .catch(e => console.error('Failed to fetch icfes ranking:', e))
+  }, [])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -53,7 +66,7 @@ export default function RegionalComparison() {
         </h4>
         <div style={{ height: 250 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={MOCK_REGIONAL_DATA} margin={{ bottom: 20 }}>
+            <BarChart data={icfesRanking.length > 0 ? icfesRanking : MOCK_REGIONAL_DATA} margin={{ bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={10} interval={0} angle={-45} textAnchor="end" />
               <YAxis domain={[200, 300]} stroke="var(--text-muted)" fontSize={11} />

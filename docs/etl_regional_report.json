@@ -1,0 +1,1388 @@
+[
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05045",
+    "status": "ok",
+    "registros": 1,
+    "detalle": ""
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05045",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05045",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05045",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05045",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05045",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Filtrado por c\u00f3digo vac\u00edo"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05045",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05045",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "sectores",
+    "municipio": "05045",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "veredas",
+    "municipio": "05045",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05051",
+    "status": "ok",
+    "registros": 1,
+    "detalle": ""
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05051",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05051",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05051",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05051",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05051",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Filtrado por c\u00f3digo vac\u00edo"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05051",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05051",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "sectores",
+    "municipio": "05051",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "veredas",
+    "municipio": "05051",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05147",
+    "status": "ok",
+    "registros": 1,
+    "detalle": ""
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05147",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05147",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05147",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05147",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05147",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Filtrado por c\u00f3digo vac\u00edo"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05147",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05147",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "sectores",
+    "municipio": "05147",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "veredas",
+    "municipio": "05147",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05172",
+    "status": "ok",
+    "registros": 1,
+    "detalle": ""
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05172",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05172",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05172",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05172",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05172",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Filtrado por c\u00f3digo vac\u00edo"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05172",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05172",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "sectores",
+    "municipio": "05172",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "veredas",
+    "municipio": "05172",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05475",
+    "status": "ok",
+    "registros": 1,
+    "detalle": ""
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05475",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05475",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05475",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05475",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05475",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Filtrado por c\u00f3digo vac\u00edo"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05475",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05475",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "sectores",
+    "municipio": "05475",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "veredas",
+    "municipio": "05475",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05480",
+    "status": "ok",
+    "registros": 1,
+    "detalle": ""
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05480",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05480",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05480",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05480",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05480",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Filtrado por c\u00f3digo vac\u00edo"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05480",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05480",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "sectores",
+    "municipio": "05480",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "veredas",
+    "municipio": "05480",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05490",
+    "status": "ok",
+    "registros": 1,
+    "detalle": ""
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05490",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05490",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05490",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05490",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05490",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Filtrado por c\u00f3digo vac\u00edo"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05490",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05490",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "sectores",
+    "municipio": "05490",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "veredas",
+    "municipio": "05490",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05659",
+    "status": "ok",
+    "registros": 1,
+    "detalle": ""
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05659",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05659",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05659",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05659",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05659",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Filtrado por c\u00f3digo vac\u00edo"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05659",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05659",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "sectores",
+    "municipio": "05659",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "veredas",
+    "municipio": "05659",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05665",
+    "status": "ok",
+    "registros": 1,
+    "detalle": ""
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05665",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05665",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05665",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05665",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05665",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Filtrado por c\u00f3digo vac\u00edo"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05665",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05665",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "sectores",
+    "municipio": "05665",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "veredas",
+    "municipio": "05665",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05837",
+    "status": "ok",
+    "registros": 1,
+    "detalle": ""
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05837",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05837",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05837",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05837",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05837",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Filtrado por c\u00f3digo vac\u00edo"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05837",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05837",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "sectores",
+    "municipio": "05837",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "veredas",
+    "municipio": "05837",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05873",
+    "status": "ok",
+    "registros": 1,
+    "detalle": ""
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05873",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05873",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05873",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05873",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05873",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Filtrado por c\u00f3digo vac\u00edo"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05873",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05873",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "sectores",
+    "municipio": "05873",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "veredas",
+    "municipio": "05873",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05045",
+    "status": "error",
+    "registros": 0,
+    "detalle": "duplicate key value violates unique constraint \"li"
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05045",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05045",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05045",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05045",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05045",
+    "status": "error",
+    "registros": 0,
+    "detalle": "load_mgn_manzanas() takes 0 positional arguments b"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05045",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05045",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05051",
+    "status": "error",
+    "registros": 0,
+    "detalle": "duplicate key value violates unique constraint \"li"
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05051",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05051",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05051",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05051",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05051",
+    "status": "error",
+    "registros": 0,
+    "detalle": "load_mgn_manzanas() takes 0 positional arguments b"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05051",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05051",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05147",
+    "status": "error",
+    "registros": 0,
+    "detalle": "duplicate key value violates unique constraint \"li"
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05147",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05147",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05147",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05147",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05147",
+    "status": "error",
+    "registros": 0,
+    "detalle": "load_mgn_manzanas() takes 0 positional arguments b"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05147",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05147",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05172",
+    "status": "error",
+    "registros": 0,
+    "detalle": "duplicate key value violates unique constraint \"li"
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05172",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05172",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05172",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05172",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05172",
+    "status": "error",
+    "registros": 0,
+    "detalle": "load_mgn_manzanas() takes 0 positional arguments b"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05172",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05172",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05475",
+    "status": "error",
+    "registros": 0,
+    "detalle": "duplicate key value violates unique constraint \"li"
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05475",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05475",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05475",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05475",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05475",
+    "status": "error",
+    "registros": 0,
+    "detalle": "load_mgn_manzanas() takes 0 positional arguments b"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05475",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05475",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05480",
+    "status": "error",
+    "registros": 0,
+    "detalle": "duplicate key value violates unique constraint \"li"
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05480",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05480",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05480",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05480",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05480",
+    "status": "error",
+    "registros": 0,
+    "detalle": "load_mgn_manzanas() takes 0 positional arguments b"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05480",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05480",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05490",
+    "status": "error",
+    "registros": 0,
+    "detalle": "duplicate key value violates unique constraint \"li"
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05490",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05490",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05490",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05490",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05490",
+    "status": "error",
+    "registros": 0,
+    "detalle": "load_mgn_manzanas() takes 0 positional arguments b"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05490",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05490",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05659",
+    "status": "error",
+    "registros": 0,
+    "detalle": "duplicate key value violates unique constraint \"li"
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05659",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05659",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05659",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05659",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05659",
+    "status": "error",
+    "registros": 0,
+    "detalle": "load_mgn_manzanas() takes 0 positional arguments b"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05659",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05659",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05665",
+    "status": "error",
+    "registros": 0,
+    "detalle": "duplicate key value violates unique constraint \"li"
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05665",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05665",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05665",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05665",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05665",
+    "status": "error",
+    "registros": 0,
+    "detalle": "load_mgn_manzanas() takes 0 positional arguments b"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05665",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05665",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05837",
+    "status": "error",
+    "registros": 0,
+    "detalle": "duplicate key value violates unique constraint \"li"
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05837",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05837",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05837",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05837",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05837",
+    "status": "error",
+    "registros": 0,
+    "detalle": "load_mgn_manzanas() takes 0 positional arguments b"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05837",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05837",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "limite_municipal",
+    "municipio": "05873",
+    "status": "error",
+    "registros": 0,
+    "detalle": "duplicate key value violates unique constraint \"li"
+  },
+  {
+    "dataset": "osm_edificaciones",
+    "municipio": "05873",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_vias",
+    "municipio": "05873",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_uso_suelo",
+    "municipio": "05873",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "osm_amenidades",
+    "municipio": "05873",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Archivo no encontrado y descarga fallida"
+  },
+  {
+    "dataset": "manzanas_censales",
+    "municipio": "05873",
+    "status": "error",
+    "registros": 0,
+    "detalle": "load_mgn_manzanas() takes 0 positional arguments b"
+  },
+  {
+    "dataset": "terrenos",
+    "municipio": "05873",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  },
+  {
+    "dataset": "construcciones",
+    "municipio": "05873",
+    "status": "skip",
+    "registros": 0,
+    "detalle": "Sin datos en bbox"
+  }
+]

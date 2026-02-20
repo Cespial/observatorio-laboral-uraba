@@ -136,7 +136,7 @@ def get_google_places(
     sql = f"""
         SELECT geom, place_id, name, category, address, rating,
                user_ratings_total, price_level, lat, lon
-        FROM servicios.google_places
+        FROM servicios.google_places_regional
         WHERE {where}
         LIMIT :lim
     """
@@ -146,7 +146,7 @@ def get_google_places(
 @router.get("/places/categories")
 def get_places_categories():
     """Listar categorías de Google Places con conteos."""
-    sql = "SELECT category, COUNT(*) as count FROM servicios.google_places GROUP BY category ORDER BY count DESC"
+    sql = "SELECT category, COUNT(*) as count FROM servicios.google_places_regional GROUP BY category ORDER BY count DESC"
     with engine.connect() as conn:
         rows = conn.execute(text(sql)).fetchall()
     return [{"category": r[0], "count": r[1]} for r in rows]
@@ -165,14 +165,14 @@ def get_places_heatmap(
         conditions.append("category = :cat")
         params["cat"] = category
         
-    # if dane_code:
-    #     conditions.append("dane_code = :dane")
-    #     params["dane"] = dane_code
+    if dane_code:
+        conditions.append("dane_code = :dane")
+        params["dane"] = dane_code
 
     where = "WHERE " + " AND ".join(conditions)
     sql = f"""
         SELECT lat, lon, COALESCE(user_ratings_total, 1) as weight
-        FROM servicios.google_places
+        FROM servicios.google_places_regional
         {where}
     """
     with engine.connect() as conn:

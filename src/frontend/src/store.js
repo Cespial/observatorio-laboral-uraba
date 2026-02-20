@@ -99,16 +99,14 @@ export const useStore = create((set, get) => ({
         }
       })
 
-      // If it's a specific municipality, we could try to fetch its summary
-      if (name === 'Apartadó') {
-        get().fetchSummary()
-      } else {
-        set({ summary: null })
-      }
+      // Fetch summary for the new context
+      get().fetchSummary(mun.divipola !== 'REGIONAL' ? mun.divipola : null)
+      
+      get().showToast(`Cambiando a vista: ${name}`)
     }
   },
 
-  activeLayers: ['limite_municipal', 'osm_vias', 'google_places'],
+  activeLayers: ['limite_municipal', 'osm_vias', 'google_places', 'veredas_mgn'],
   toggleLayer: (id) => set((s) => ({
     activeLayers: s.activeLayers.includes(id)
       ? s.activeLayers.filter((l) => l !== id)
@@ -133,9 +131,10 @@ export const useStore = create((set, get) => ({
   activePanel: 'overview',
   setActivePanel: (p) => set({ activePanel: p }),
 
-  fetchSummary: async () => {
+  fetchSummary: async (daneCode = null) => {
+    const param = daneCode ? `?dane_code=${daneCode}` : ''
     try {
-      set({ summary: await safeFetch(`${API}/stats/summary`) })
+      set({ summary: await safeFetch(`${API}/stats/summary${param}`) })
     } catch (e) {
       console.error('fetchSummary:', e)
       set((s) => ({ errors: { ...s.errors, summary: e.message } }))
@@ -153,6 +152,17 @@ export const useStore = create((set, get) => ({
       set((s) => ({ layerData: { ...s.layerData, [id]: d } }))
     } catch (e) {
       console.error(`fetchLayer(${id}):`, e)
+    }
+  },
+  fetchVeredas: async () => {
+    const municipio = get().selectedMunicipio
+    const mun = get().municipios.find(m => m.name === municipio)
+    const daneParam = mun && mun.divipola !== 'REGIONAL' ? `?dane_code=${mun.divipola}` : ''
+    try {
+      const d = await safeFetch(`${API}/layers/veredas_mgn/geojson${daneParam}`)
+      set((s) => ({ layerData: { ...s.layerData, veredas_mgn: d } }))
+    } catch (e) {
+      console.error('fetchVeredas:', e)
     }
   },
   fetchManzanas: async () => {
