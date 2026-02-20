@@ -213,3 +213,33 @@ select:focus-visible,
   border-radius: 6px !important;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
 }
+.recharts-legend-item-text { color: var(--text-secondary) !important; font-size: 10px !important; }
+
+/* Dark mode badge overrides */
+[data-theme="dark"] .badge-blue { background: rgba(77, 163, 255, 0.15); color: #4DA3FF; }
+[data-theme="dark"] .badge-green { background: rgba(106, 222, 74, 0.15); color: #6ADE4A; }
+[data-theme="dark"] .badge-red { background: rgba(255, 107, 107, 0.15); color: #FF6B6B; }
+[data-theme="dark"] .badge-orange { background: rgba(255, 179, 71, 0.15); color: #FFB347; }
+[data-theme="dark"] .badge-gray { background: rgba(140, 140, 140, 0.15); color: #A0AECB; }
+
+/* Dark mode select styling */
+[data-theme="dark"] select {
+  color-scheme: dark;
+}
+
+/* Smooth transitions between themes */
+body, .card, .tab-item, .badge, header, footer {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Mobile: stack tabs horizontally with scroll */
+@media (max-width: 768px) {
+  .tab-bar {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-bar .tab-item { white-space: nowrap; }
+}

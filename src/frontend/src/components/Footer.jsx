@@ -15,10 +15,10 @@ export default function Footer() {
       }}
     >
       <div>
-        Fuentes: DANE, DNP-TerriData, Policia Nacional, ICFES, MinSalud, MinEducacion, Google Places, OSM
+        Fuentes: ComputTrabajo, elempleo, Indeed, Comfama, LinkedIn, DANE, DNP-TerriData, ICFES, Google Places
       </div>
       <div>
-        Observatorio de Ciudades &copy; 2026 &middot; Ultima actualizacion: Feb 2026
+        Observatorio Laboral de Uraba &copy; 2026 &middot; Datos actualizados diariamente
       </div>
     </footer>
   )

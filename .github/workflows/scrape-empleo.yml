@@ -1,0 +1,67 @@
+name: Scrape Ofertas Laborales Urabá
+
+on:
+  schedule:
+    # Run every day at 6 AM and 6 PM Colombia time (UTC-5)
+    - cron: '0 11,23 * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  scrape-and-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout observatorio
+        uses: actions/checkout@v4
+
+      - name: Checkout scraper repo
+        uses: actions/checkout@v4
+        with:
+          repository: Cespial/uraba-empleos
+          path: uraba_empleos
+          token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install scraper dependencies
+        run: |
+          pip install playwright pandas beautifulsoup4 fake-useragent tabulate unidecode openpyxl pdfplumber
+          playwright install chromium
+        if: hashFiles('uraba_empleos/requirements.txt') != ''
+
+      - name: Install ETL dependencies
+        run: |
+          pip install sqlalchemy psycopg2-binary
+
+      - name: Run scraper
+        run: |
+          cd uraba_empleos
+          python main.py --sources computrabajo elempleo indeed comfama
+        timeout-minutes: 20
+        continue-on-error: true
+
+      - name: Copy SQLite to home for ETL
+        run: |
+          mkdir -p ~/uraba_empleos
+          cp uraba_empleos/empleos_uraba.db ~/uraba_empleos/empleos_uraba.db
+        if: hashFiles('uraba_empleos/empleos_uraba.db') != ''
+
+      - name: Sync to Supabase
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          python etl/12_sync_empleo_incremental.py
+
+      - name: Summary
+        run: |
+          echo "## Scraping Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Date: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          if [ -f uraba_empleos/empleos_uraba.db ]; then
+            COUNT=$(sqlite3 uraba_empleos/empleos_uraba.db "SELECT COUNT(*) FROM ofertas" 2>/dev/null || echo "N/A")
+            echo "- Total offers in SQLite: $COUNT" >> $GITHUB_STEP_SUMMARY
+          fi

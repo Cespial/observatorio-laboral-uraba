@@ -57,6 +57,8 @@ export default function MapView() {
   const municipios = useStore((s) => s.municipios)
   const municipioCentroids = useStore((s) => s.municipioCentroids)
   const fetchCentroids = useStore((s) => s.fetchCentroids)
+  const empleoAnalytics = useStore((s) => s.empleoAnalytics)
+  const fetchEmpleoAnalytics = useStore((s) => s.fetchEmpleoAnalytics)
 
   useEffect(() => {
     fetchLayerGeoJSON('limite_municipal')
@@ -65,7 +67,8 @@ export default function MapView() {
     fetchPlaces()
     fetchPlacesHeatmap()
     fetchCentroids()
-  }, [fetchLayerGeoJSON, fetchManzanas, fetchVeredas, fetchPlaces, fetchPlacesHeatmap, fetchCentroids])
+    fetchEmpleoAnalytics()
+  }, [fetchLayerGeoJSON, fetchManzanas, fetchVeredas, fetchPlaces, fetchPlacesHeatmap, fetchCentroids, fetchEmpleoAnalytics])
 
   const onViewStateChange = useCallback(
     ({ viewState: vs }) => {
@@ -236,8 +239,47 @@ export default function MapView() {
       )
     }
 
+    // Employment concentration bubbles
+    if (activeLayers.includes('empleo_concentracion') && empleoAnalytics?.concentracion) {
+      const empData = empleoAnalytics.concentracion.filter(c => c.lat && c.lon)
+      const maxOfertas = Math.max(...empData.map(c => c.ofertas || 0), 1)
+      result.push(
+        new ScatterplotLayer({
+          id: 'empleo_concentracion',
+          data: empData,
+          getPosition: (d) => [d.lon, d.lat],
+          getRadius: (d) => Math.max(800, Math.sqrt((d.ofertas || 0) / maxOfertas) * 5000),
+          radiusUnits: 'meters',
+          getFillColor: [250, 140, 22, 160],
+          getLineColor: [200, 100, 0, 200],
+          stroked: true,
+          lineWidthMinPixels: 1.5,
+          pickable: true,
+        }),
+      )
+      // Employment bubble labels
+      result.push(
+        new TextLayer({
+          id: 'empleo_labels',
+          data: empData,
+          getPosition: (d) => [d.lon, d.lat],
+          getText: (d) => `${d.ofertas}`,
+          getSize: 12,
+          getColor: [120, 60, 0, 255],
+          getTextAnchor: 'middle',
+          getAlignmentBaseline: 'center',
+          fontWeight: 'bold',
+          outlineWidth: 2,
+          outlineColor: [255, 255, 255, 220],
+          fontFamily: 'system-ui, sans-serif',
+          sizeUnits: 'pixels',
+          billboard: false,
+        }),
+      )
+    }
+
     return result
-  }, [activeLayers, layerData, selectedCategory, viewState.zoom, selectedMunicipio, municipios, municipioCentroids])
+  }, [activeLayers, layerData, selectedCategory, viewState.zoom, selectedMunicipio, municipios, municipioCentroids, empleoAnalytics])
 
   const onClick = useCallback((info) => {
     if (!info.object) { setPopup(null); return }
@@ -255,6 +297,9 @@ export default function MapView() {
     const props = object.properties || object
     if (props.nombre && props.dane_code) {
       return { text: `${props.nombre} (${props.dane_code})` }
+    }
+    if (props.ofertas && props.empresas && props.pct_ofertas != null) {
+      return { text: `${props.municipio}\n${props.ofertas} vacantes · ${props.empresas} empresas` }
     }
     if (props.name) return { text: props.name }
     if (props.cod_dane_manzana) {

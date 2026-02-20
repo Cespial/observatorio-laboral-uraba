@@ -10,6 +10,7 @@ export default function RegionalComparison() {
   const [icfesData, setIcfesData] = useState(null)
   const [desempleoData, setDesempleoData] = useState(null)
   const [ircaData, setIrcaData] = useState(null)
+  const [empleoData, setEmpleoData] = useState(null)
 
   useEffect(() => {
     // Fetch real rankings from TerriData
@@ -34,6 +35,21 @@ export default function RegionalComparison() {
     fetchRanking('Puntaje promedio Pruebas Saber 11 - Matemáticas', setIcfesData, 'icfes')
     fetchRanking('Tasa de desempleo', setDesempleoData, 'desempleo')
     fetchRanking('Índice de riesgo de la calidad del agua -IRCA-', setIrcaData, 'irca')
+
+    // Fetch employment concentration data
+    fetch(`${API}/analytics/laboral/concentracion`)
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setEmpleoData(data.map(d => ({
+            name: d.municipio?.replace('San Pedro De Urabá', 'S. Pedro')
+              ?.replace('San Juan De Urabá', 'S. Juan')
+              ?.replace('Vigía Del Fuerte', 'Vigía'),
+            vacantes: d.ofertas,
+          })))
+        }
+      })
+      .catch(() => {})
   }, [])
 
   const chartStyle = { background: 'var(--bg-card)', borderRadius: 8, border: '1px solid var(--border)', padding: 16 }
@@ -45,6 +61,28 @@ export default function RegionalComparison() {
         <h3 className="section-title">Comparativa Regional (Urabá)</h3>
         <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 16 }}>
           Comparación de indicadores clave entre los municipios de la región de Urabá (TerriData - DNP).
+        </p>
+      </div>
+
+      <div style={chartStyle}>
+        <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' }}>
+          Vacantes Laborales por Municipio
+        </h4>
+        {empleoData ? (
+          <div style={{ height: 250 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={empleoData} margin={{ bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={10} interval={0} angle={-45} textAnchor="end" />
+                <YAxis stroke="var(--text-muted)" fontSize={11} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Bar dataKey="vacantes" fill="#FA8C16" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : <SkeletonChart />}
+        <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 8 }}>
+          Fuente: Scraping multi-portal (ComputTrabajo, elempleo, Indeed, Comfama, LinkedIn)
         </p>
       </div>
 

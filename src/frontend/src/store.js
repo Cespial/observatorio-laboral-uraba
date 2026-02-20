@@ -100,6 +100,7 @@ export const useStore = create((set, get) => ({
         crossvarVariables: null,
         empleoData: null,
         empleoKpis: null,
+        empleoAnalytics: null,
         errors: {},
       }))
 
@@ -142,6 +143,7 @@ export const useStore = create((set, get) => ({
   crossvarVariables: null,
   empleoData: null,
   empleoKpis: null,
+  empleoAnalytics: null,
   errors: {},
   selectedCategory: null,
   setSelectedCategory: (cat) => set({ selectedCategory: cat }),
@@ -374,6 +376,21 @@ export const useStore = create((set, get) => ({
       set({ empleoKpis: await safeFetch(`${API}/empleo/kpis`) })
     } catch (e) {
       console.error('fetchEmpleoKpis:', e)
+    }
+  },
+  fetchEmpleoAnalytics: async () => {
+    if (get().empleoAnalytics) return
+    try {
+      const [termometro, dinamismo, concentracion, brechaSkills] = await Promise.all([
+        safeFetch(`${API}/analytics/laboral/termometro`),
+        safeFetch(`${API}/analytics/laboral/dinamismo`),
+        safeFetch(`${API}/analytics/laboral/concentracion`),
+        safeFetch(`${API}/analytics/laboral/brecha-skills`),
+      ])
+      set({ empleoAnalytics: { termometro, dinamismo, concentracion, brechaSkills } })
+    } catch (e) {
+      console.error('fetchEmpleoAnalytics:', e)
+      set((s) => ({ errors: { ...s.errors, empleoAnalytics: e.message } }))
     }
   },
 }))

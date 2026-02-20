@@ -3,7 +3,7 @@ import { useStore } from '../store'
 import { SkeletonTab, ErrorBanner, ExportCSVButton } from './Skeleton'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, AreaChart, Area, Cell, PieChart, Pie,
+  ResponsiveContainer, AreaChart, Area, Cell, PieChart, Pie, LineChart, Line, Legend,
 } from 'recharts'
 
 const SECTOR_COLORS = [
@@ -31,15 +31,30 @@ function fmtSalary(val) {
   return `$${(val / 1000000).toFixed(1)}M`
 }
 
-export default function EmpleoTab() {
-  const { empleoData, fetchEmpleo, errors } = useStore()
+function TrendBadge({ value }) {
+  if (value == null) return null
+  const up = value > 0
+  const color = up ? 'var(--semantic-positive)' : 'var(--semantic-negative)'
+  return (
+    <span style={{ fontSize: 10, fontWeight: 600, color, marginLeft: 4 }}>
+      {up ? '\u25B2' : '\u25BC'} {Math.abs(value).toFixed(1)}%
+    </span>
+  )
+}
 
-  useEffect(() => { fetchEmpleo() }, [])
+export default function EmpleoTab() {
+  const { empleoData, empleoAnalytics, fetchEmpleo, fetchEmpleoAnalytics, errors } = useStore()
+
+  useEffect(() => {
+    fetchEmpleo()
+    fetchEmpleoAnalytics()
+  }, [])
 
   if (errors.empleo) return <ErrorBanner message={errors.empleo} />
   if (!empleoData) return <SkeletonTab />
 
   const { stats, serie, skills, salarios, sectores } = empleoData
+  const analytics = empleoAnalytics
 
   return (
     <div className="fade-in">
@@ -67,10 +82,40 @@ export default function EmpleoTab() {
         </div>
       </div>
 
+      {/* Termometro Laboral */}
+      {analytics?.termometro?.length > 0 && (
+        <>
+          <h4 className="section-title" style={{ fontSize: 11 }}>Termometro Laboral</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
+            {analytics.termometro.slice(0, 6).map((t, i) => (
+              <div key={t.municipio || i} style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '6px 10px', background: 'var(--bg-card)', borderRadius: 6,
+                border: '1px solid var(--border)',
+              }}>
+                <span style={{ fontSize: 11, color: 'var(--text-primary)', fontWeight: 500 }}>
+                  {t.municipio}
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                    7d: <strong style={{ color: 'var(--accent-primary)' }}>{t.ultimos_7_dias}</strong>
+                  </span>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                    30d: {t.ultimos_30_dias}
+                  </span>
+                  <TrendBadge value={t.tendencia} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="data-source">Intensidad de ofertas recientes por municipio</div>
+        </>
+      )}
+
       {/* Ofertas por Municipio */}
       {stats.por_municipio?.length > 0 && (
         <>
-          <h4 className="section-title" style={{ fontSize: 11 }}>Ofertas por Municipio</h4>
+          <h4 className="section-title" style={{ fontSize: 11, marginTop: 16 }}>Ofertas por Municipio</h4>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={stats.por_municipio} layout="vertical" margin={{ left: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
@@ -94,11 +139,11 @@ export default function EmpleoTab() {
         </>
       )}
 
-      {/* Distribución por Sector */}
+      {/* Distribucion por Sector */}
       {sectores?.length > 0 && (
         <>
           <h4 className="section-title" style={{ fontSize: 11, marginTop: 16 }}>Sectores Economicos</h4>
-          <ResponsiveContainer width="100%" height={Math.max(160, sectores.length * 22)}>
+          <ResponsiveContainer width="100%" height={Math.max(160, Math.min(sectores.length, 10) * 22)}>
             <BarChart data={sectores.slice(0, 10)} layout="vertical" margin={{ left: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
               <XAxis type="number" tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} />
@@ -128,6 +173,32 @@ export default function EmpleoTab() {
         </>
       )}
 
+      {/* Dinamismo Laboral - Monthly Growth */}
+      {analytics?.dinamismo?.length > 0 && (
+        <>
+          <h4 className="section-title" style={{ fontSize: 11, marginTop: 16 }}>Dinamismo Laboral</h4>
+          <ResponsiveContainer width="100%" height={180}>
+            <LineChart data={analytics.dinamismo}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
+              <XAxis dataKey="mes" tick={{ fill: 'var(--text-secondary)', fontSize: 9 }} angle={-45} textAnchor="end" height={40} />
+              <YAxis yAxisId="left" tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} />
+              <YAxis yAxisId="right" orientation="right" tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} unit="%" />
+              <Tooltip
+                contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12 }}
+                labelStyle={{ color: 'var(--text-primary)', fontWeight: 600 }}
+              />
+              <Legend wrapperStyle={{ fontSize: 10 }} />
+              <Line yAxisId="left" type="monotone" dataKey="ofertas" stroke="#0050B3" strokeWidth={2} dot={{ r: 3 }} name="Ofertas" />
+              <Line yAxisId="right" type="monotone" dataKey="crecimiento_pct" stroke="#52C41A" strokeWidth={1.5} strokeDasharray="4 2" dot={false} name="Crecimiento %" connectNulls />
+            </LineChart>
+          </ResponsiveContainer>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="data-source">Crecimiento mensual de ofertas y empresas</div>
+            <ExportCSVButton rows={analytics.dinamismo} filename="empleo_dinamismo.csv" />
+          </div>
+        </>
+      )}
+
       {/* Serie Temporal */}
       {serie?.length > 0 && (
         <>
@@ -152,7 +223,84 @@ export default function EmpleoTab() {
         </>
       )}
 
-      {/* Top Habilidades */}
+      {/* Brecha de Skills */}
+      {analytics?.brechaSkills && (
+        <>
+          <h4 className="section-title" style={{ fontSize: 11, marginTop: 16 }}>Brecha de Habilidades</h4>
+          {/* Top demanded skills as horizontal bars */}
+          {analytics.brechaSkills.skills_demandadas?.length > 0 && (
+            <ResponsiveContainer width="100%" height={Math.min(analytics.brechaSkills.skills_demandadas.length, 10) * 22 + 20}>
+              <BarChart data={analytics.brechaSkills.skills_demandadas.slice(0, 10)} layout="vertical" margin={{ left: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
+                <XAxis type="number" tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} />
+                <YAxis
+                  dataKey="skill"
+                  type="category"
+                  tick={{ fill: 'var(--text-secondary)', fontSize: 9 }}
+                  width={100}
+                />
+                <Tooltip
+                  contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12 }}
+                  formatter={(v, name, props) => {
+                    const pct = props?.payload?.pct
+                    return [`${v} ofertas (${pct || 0}%)`, 'Demanda']
+                  }}
+                />
+                <Bar dataKey="demanda" radius={[0, 4, 4, 0]}>
+                  {analytics.brechaSkills.skills_demandadas.slice(0, 10).map((_, i) => (
+                    <Cell key={i} fill={i < 3 ? '#0050B3' : '#69C0FF'} fillOpacity={0.85} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+          {/* Insights */}
+          {analytics.brechaSkills.insights?.length > 0 && (
+            <div style={{
+              background: 'var(--bg-tertiary)', borderRadius: 8, padding: '8px 12px',
+              marginTop: 8, border: '1px solid var(--border)',
+            }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--accent-primary)', marginBottom: 4, textTransform: 'uppercase' }}>
+                Insights
+              </div>
+              {analytics.brechaSkills.insights.map((insight, i) => (
+                <div key={i} style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 2 }}>
+                  {insight}
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Capital humano summary */}
+          {analytics.brechaSkills.capital_humano && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginTop: 8 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 6, padding: '6px 8px', border: '1px solid var(--border)', textAlign: 'center' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent-primary)' }}>
+                  {analytics.brechaSkills.capital_humano.icfes_promedio || '---'}
+                </div>
+                <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>ICFES Promedio</div>
+              </div>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 6, padding: '6px 8px', border: '1px solid var(--border)', textAlign: 'center' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {fmt(analytics.brechaSkills.capital_humano.colegios)}
+                </div>
+                <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Colegios</div>
+              </div>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 6, padding: '6px 8px', border: '1px solid var(--border)', textAlign: 'center' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {fmt(analytics.brechaSkills.capital_humano.estudiantes_evaluados)}
+                </div>
+                <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Estudiantes</div>
+              </div>
+            </div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
+            <div className="data-source">Skills demandadas vs capital humano</div>
+            <ExportCSVButton rows={analytics.brechaSkills.skills_demandadas} filename="empleo_brecha_skills.csv" />
+          </div>
+        </>
+      )}
+
+      {/* Top Habilidades (tag cloud) */}
       {skills?.length > 0 && (
         <>
           <h4 className="section-title" style={{ fontSize: 11, marginTop: 16 }}>Habilidades mas Demandadas</h4>
@@ -181,7 +329,7 @@ export default function EmpleoTab() {
         </>
       )}
 
-      {/* Distribución Salarial */}
+      {/* Distribucion Salarial */}
       {salarios?.rangos?.length > 0 && (
         <>
           <h4 className="section-title" style={{ fontSize: 11, marginTop: 16 }}>Distribucion Salarial</h4>
@@ -219,6 +367,51 @@ export default function EmpleoTab() {
         </>
       )}
 
+      {/* Concentracion Geografica */}
+      {analytics?.concentracion?.length > 0 && (
+        <>
+          <h4 className="section-title" style={{ fontSize: 11, marginTop: 16 }}>Concentracion Geografica</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {analytics.concentracion.slice(0, 8).map((c, i) => (
+              <div key={c.municipio || i} style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '6px 10px', background: 'var(--bg-card)', borderRadius: 6,
+                border: '1px solid var(--border)',
+              }}>
+                <span style={{
+                  width: 24, height: 24, borderRadius: '50%',
+                  background: i === 0 ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                  color: i === 0 ? '#fff' : 'var(--text-secondary)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 10, fontWeight: 700, flexShrink: 0,
+                }}>
+                  {i + 1}
+                </span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {c.municipio}
+                  </div>
+                  <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>
+                    {c.empresas} empresas · {c.sectores} sectores
+                    {c.salario_promedio ? ` · ${fmtSalary(c.salario_promedio)}` : ''}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-primary)' }}>
+                    {c.ofertas}
+                  </div>
+                  <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>{c.pct_ofertas}%</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
+            <div className="data-source">Distribucion de ofertas laborales</div>
+            <ExportCSVButton rows={analytics.concentracion} filename="empleo_concentracion.csv" />
+          </div>
+        </>
+      )}
+
       {/* Top Empresas */}
       {stats.top_empresas?.length > 0 && (
         <>
@@ -251,7 +444,7 @@ export default function EmpleoTab() {
         <>
           <h4 className="section-title" style={{ fontSize: 11, marginTop: 16 }}>Fuentes de Datos</h4>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {stats.por_fuente.map((f, i) => (
+            {stats.por_fuente.map((f) => (
               <div key={f.fuente} style={{
                 padding: '6px 12px', borderRadius: 8,
                 background: 'var(--bg-card)', border: '1px solid var(--border)',

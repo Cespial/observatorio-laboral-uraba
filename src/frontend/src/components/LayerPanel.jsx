@@ -7,6 +7,7 @@ const LAYERS = [
   { id: 'osm_vias', label: 'Red Vial', color: '#40A9FF' },
   { id: 'google_places', label: 'Negocios', color: '#FA8C16' },
   { id: 'places_heatmap', label: 'Heatmap Negocios', color: '#0050B3' },
+  { id: 'empleo_concentracion', label: 'Empleo Regional', color: '#FA8C16' },
 ];
 
 export default function LayerPanel() {
