@@ -615,13 +615,23 @@ def get_salario_imputado():
         HAVING COUNT(*) >= 3
     """)
 
-    cobertura = query_dicts("""
-        SELECT
-            COUNT(*) as total,
-            COUNT(CASE WHEN salario_numerico IS NOT NULL THEN 1 END) as con_salario,
-            COUNT(CASE WHEN salario_imputado IS NOT NULL THEN 1 END) as con_imputado
-        FROM empleo.ofertas_laborales
-    """)
+    try:
+        cobertura = query_dicts("""
+            SELECT
+                COUNT(*) as total,
+                COUNT(CASE WHEN salario_numerico IS NOT NULL THEN 1 END) as con_salario,
+                COUNT(CASE WHEN salario_imputado IS NOT NULL THEN 1 END) as con_imputado
+            FROM empleo.ofertas_laborales
+        """)
+    except Exception:
+        # salario_imputado column may not exist yet (ETL 16 not run)
+        cobertura = query_dicts("""
+            SELECT
+                COUNT(*) as total,
+                COUNT(CASE WHEN salario_numerico IS NOT NULL THEN 1 END) as con_salario,
+                0 as con_imputado
+            FROM empleo.ofertas_laborales
+        """)
 
     cob = cobertura[0] if cobertura else {}
     total = cob.get("total", 0)

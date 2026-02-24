@@ -494,6 +494,45 @@ def get_modalidad_dist(dane_code: str = Query(None)):
     )
 
 
+SKILL_CATEGORIES = {
+    "Tecnológica": [
+        "Excel", "Word", "SAP", "Python", "SQL", "Power BI", "Tableau",
+        "ERP", "CRM", "AutoCAD", "Diseno grafico", "Software contable",
+        "Redes sociales",
+    ],
+    "Agroindustrial": [
+        "Agricultura", "Cultivo banano/plátano", "Cosecha", "Fitosanidad",
+        "Riego y drenaje", "Empaque", "Certificaciones agrícolas",
+        "Certificacion organica", "Cadena de frio", "BPM", "HACCP",
+        "Ganadería", "Veterinaria", "Palma", "Porcicultura", "Acuicultura",
+        "Cacao",
+    ],
+    "Blanda": [
+        "Liderazgo", "Trabajo en equipo", "Comunicación", "Negociación",
+        "Manejo de personal", "Atención al cliente", "Servicio al cliente",
+        "Ventas", "Marketing", "Gestion", "Planeacion",
+    ],
+    "Industrial": [
+        "Soldadura", "Montacargas", "Electricidad", "Mecánica", "Construcción",
+        "SST", "Primeros auxilios", "Maquinaria pesada", "Tractor",
+    ],
+    "Administrativa": [
+        "Contabilidad", "Facturación", "Presupuesto", "Inventarios",
+        "Manejo de caja", "Cobranza/Cartera", "Gestion de calidad",
+        "Inglés", "Educación", "Enfermería", "Medicina",
+    ],
+    "Logística y Transporte": [
+        "Logística", "Licencia de conducción", "Moto propia", "Vehiculo propio",
+        "Comercio exterior", "Aduanas", "Contenedores", "Estiba",
+        "Zona franca", "Logística marítima", "Transporte fluvial",
+    ],
+    "Turismo y Gastronomía": [
+        "Guía turístico", "Hotelería", "Servicio de habitación",
+        "Barista/Bartender",
+    ],
+}
+
+
 @router.get("/skills-categorized")
 @cached(ttl_seconds=3600)
 def get_skills_categorized(
@@ -501,11 +540,6 @@ def get_skills_categorized(
     limit: int = Query(50, le=100),
 ):
     """Skills agrupadas por categoría (Tecnológica, Agroindustrial, Blanda, etc.)."""
-    import sys
-    from pathlib import Path
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "etl"))
-    from etl_sync import SKILL_CATEGORIES
-
     conditions = ["1=1"]
     params = {"lim": limit}
     if dane_code:
