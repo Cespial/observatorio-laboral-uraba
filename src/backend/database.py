@@ -72,19 +72,27 @@ def query_dicts_batch(queries: list[tuple[str, dict | None]]) -> list[list[dict]
     Returns a list of list[dict] in the same order.
     This avoids opening multiple connections from the pool, which can
     exhaust Vercel serverless connection limits.
+    Uses SAVEPOINTs so a failed query doesn't abort the transaction for
+    subsequent queries.
     """
     results: list[list[dict]] = []
     with engine.connect() as conn:
-        for sql, params in queries:
+        for i, (sql, params) in enumerate(queries):
             try:
+                conn.execute(text(f"SAVEPOINT sp_{i}"))
                 result = conn.execute(text(sql), params or {})
                 if result.returns_rows:
                     columns = list(result.keys())
                     results.append([dict(zip(columns, row)) for row in result.fetchall()])
                 else:
                     results.append([])
+                conn.execute(text(f"RELEASE SAVEPOINT sp_{i}"))
             except Exception:
                 results.append([])
+                try:
+                    conn.execute(text(f"ROLLBACK TO SAVEPOINT sp_{i}"))
+                except Exception:
+                    pass
     return results
 
 def query_geojson(sql: str, params: dict = None, geom_col: str = "geom") -> dict:
