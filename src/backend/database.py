@@ -7,14 +7,14 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from .config import DATABASE_URL
 
-# PostgreSQL Engine (Main Data)
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_size=2,
-    max_overflow=3,
-    pool_recycle=120,
-)
+# Database Engine — supports both PostgreSQL (production) and SQLite (testing)
+_engine_kwargs = {"pool_pre_ping": True}
+if DATABASE_URL.startswith("sqlite"):
+    _engine_kwargs["connect_args"] = {"check_same_thread": False}
+else:
+    _engine_kwargs.update(pool_size=2, max_overflow=3, pool_recycle=120)
+
+engine = create_engine(DATABASE_URL, **_engine_kwargs)
 
 # SQLite Connection (Employment Data)
 # Assuming it's in a known path relative to the project

@@ -2,7 +2,6 @@
 Observatorio de Ciudades — Urabá
 API Backend (FastAPI)
 """
-import logging
 import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,8 +9,11 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from sqlalchemy.exc import SQLAlchemyError
 from .routers import layers, geo, indicators, crossvar, stats, empleo, analytics
+from .middleware.rate_limit import RateLimitMiddleware
+from .monitoring import setup_logging, init_sentry
 
-logger = logging.getLogger("observatorio")
+logger = setup_logging()
+init_sentry()
 
 TAGS_METADATA = [
     {"name": "Root", "description": "Health check y catálogo de endpoints"},
@@ -82,6 +84,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(
+    RateLimitMiddleware,
+    requests_per_minute=int(os.getenv("RATE_LIMIT_RPM", "60")),
+    burst_per_second=int(os.getenv("RATE_LIMIT_BPS", "10")),
+)
 
 app.include_router(layers.router)
 app.include_router(geo.router)

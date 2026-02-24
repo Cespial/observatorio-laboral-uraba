@@ -409,6 +409,7 @@ CREATE TABLE IF NOT EXISTS empleo.ofertas_laborales (
     skills TEXT[],
     fecha_scraping TIMESTAMP,
     content_hash TEXT,
+    dedup_hash TEXT,
     nivel_experiencia TEXT,
     tipo_contrato TEXT,
     nivel_educativo TEXT,
@@ -419,3 +420,13 @@ ALTER TABLE empleo.ofertas_laborales ADD COLUMN IF NOT EXISTS nivel_experiencia 
 ALTER TABLE empleo.ofertas_laborales ADD COLUMN IF NOT EXISTS tipo_contrato TEXT;
 ALTER TABLE empleo.ofertas_laborales ADD COLUMN IF NOT EXISTS nivel_educativo TEXT;
 ALTER TABLE empleo.ofertas_laborales ADD COLUMN IF NOT EXISTS modalidad TEXT;
+ALTER TABLE empleo.ofertas_laborales ADD COLUMN IF NOT EXISTS dedup_hash TEXT;
+
+-- Deduplication index: prevents same job from appearing twice across portals
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ofertas_dedup_hash
+ON empleo.ofertas_laborales (dedup_hash)
+WHERE dedup_hash IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_ofertas_content_hash
+ON empleo.ofertas_laborales (content_hash)
+WHERE content_hash IS NOT NULL;

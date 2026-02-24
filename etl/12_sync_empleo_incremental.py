@@ -13,7 +13,6 @@ Uso:
 
 import sqlite3
 import sys
-import re
 from pathlib import Path
 from sqlalchemy import create_engine, text
 
@@ -22,186 +21,14 @@ from config import DB_URL
 
 SQLITE_PATH = Path.home() / "uraba_empleos" / "empleos_uraba.db"
 
-MUNICIPIO_DANE = {
-    "apartadó": "05045", "apartado": "05045",
-    "turbo": "05837",
-    "carepa": "05147",
-    "chigorodó": "05172", "chigorodo": "05172",
-    "necoclí": "05490", "necocli": "05490",
-    "arboletes": "05051",
-    "san pedro de urabá": "05665", "san pedro": "05665",
-    "san juan de urabá": "05659", "san juan": "05659",
-    "mutatá": "05480", "mutata": "05480",
-    "murindó": "05475", "murindo": "05475",
-    "vigía del fuerte": "05873", "vigia del fuerte": "05873", "vigia": "05873",
-    "urabá": None, "uraba": None,
-}
-
-SKILL_PATTERNS = [
-    (r'\bexcel\b', 'Excel'),
-    (r'\bword\b', 'Word'),
-    (r'\bsap\b', 'SAP'),
-    (r'\bpython\b', 'Python'),
-    (r'\bsql\b', 'SQL'),
-    (r'\bingl[eé]s\b', 'Inglés'),
-    (r'\bcontabilidad\b', 'Contabilidad'),
-    (r'\bfacturaci[oó]n\b', 'Facturación'),
-    (r'\batenci[oó]n al cliente\b', 'Atención al cliente'),
-    (r'\bservicio al cliente\b', 'Servicio al cliente'),
-    (r'\bventas\b', 'Ventas'),
-    (r'\bliderazgo\b', 'Liderazgo'),
-    (r'\btrabajo en equipo\b', 'Trabajo en equipo'),
-    (r'\bcomunicaci[oó]n\b', 'Comunicación'),
-    (r'\bnegociaci[oó]n\b', 'Negociación'),
-    (r'\bmanejo de personal\b', 'Manejo de personal'),
-    (r'\blogística\b|\blogistica\b', 'Logística'),
-    (r'\bpresupuesto\b', 'Presupuesto'),
-    (r'\bmarketing\b|\bmercadeo\b', 'Marketing'),
-    (r'\bredes sociales\b|\bsocial media\b', 'Redes sociales'),
-    (r'\blicencia\s+(de\s+)?conducci[oó]n\b|\blicencia\s+[bc]\d\b', 'Licencia de conducción'),
-    (r'\bmoto\b', 'Moto propia'),
-    (r'\bsalud ocupacional\b|\bsst\b|\bseguridad y salud\b', 'SST'),
-    (r'\bagricultura\b|\bagrícola\b|\bagricola\b|\bcultivo\b', 'Agricultura'),
-    (r'\bbanano\b|\bplátano\b|\bplatano\b', 'Cultivo banano/plátano'),
-    (r'\bglobalg\.?a\.?p\.?\b|\brainforest\b', 'Certificaciones agrícolas'),
-    (r'\benfermería\b|\benfermeria\b|\benfermero\b', 'Enfermería'),
-    (r'\bmedicina\b|\bmédico\b|\bmedico\b', 'Medicina'),
-    (r'\bpedagog\b|\beducaci[oó]n\b|\bdocente\b|\bprofesor\b', 'Educación'),
-    (r'\bconstrucci[oó]n\b|\bobra\b|\bingeniería civil\b', 'Construcción'),
-    (r'\belectricidad\b|\beléctric\b|\belectric\b', 'Electricidad'),
-    (r'\bmecánic\b|\bmecanica\b', 'Mecánica'),
-    (r'\bsoldadura\b', 'Soldadura'),
-    # Herramientas y Software
-    (r'\bpower\s*bi\b', 'Power BI'),
-    (r'\btableau\b', 'Tableau'),
-    (r'\berp\b', 'ERP'),
-    (r'\bcrm\b', 'CRM'),
-    (r'\bautocad\b|\bauto\s*cad\b', 'AutoCAD'),
-    (r'\bphotoshop\b|\billustrator\b|\bdise[nñ]o\b', 'Diseno grafico'),
-    (r'\bsiigo\b|\bworld\s*office\b|\bhelisa\b', 'Software contable'),
-    # Habilidades blandas y gestion
-    (r'\bplaneaci[oó]n\b|\bplanificaci[oó]n\b', 'Planeacion'),
-    (r'\bgesti[oó]n\b', 'Gestion'),
-    (r'\binventario\b', 'Inventarios'),
-    (r'\bcaja\b|\bmanejo.*efectivo\b', 'Manejo de caja'),
-    (r'\bcobranza\b|\bcartera\b', 'Cobranza/Cartera'),
-    (r'\bimportaci[oó]n\b|\bexportaci[oó]n\b|\bcomercio\s+exterior\b', 'Comercio exterior'),
-    (r'\bcalidad\b|\biso\b|\bnormas?\b', 'Gestion de calidad'),
-    (r'\bprimeros\s+auxilios\b|\bbrigad\b', 'Primeros auxilios'),
-    # Agro-especificos de Uraba
-    (r'\bfitosanitar\b|\bplagas?\b|\bfumig\b', 'Fitosanidad'),
-    (r'\bempaque\b|\bembalaje\b|\bempacad\b', 'Empaque'),
-    (r'\bcosecha\b|\brecolec\b|\bcorte\b.*\bbanano\b', 'Cosecha'),
-    (r'\briego\b|\bdrenaje\b|\bfertirriego\b', 'Riego y drenaje'),
-    (r'\bcertific\b.*\borganic\b|\bglobal\s*gap\b', 'Certificacion organica'),
-    # Transporte y operaciones
-    (r'\bmontacarga\b', 'Montacargas'),
-    (r'\bveh[ií]culo\s+propio\b', 'Vehiculo propio'),
-    (r'\bcadena\s+de\s+fr[ií]o\b', 'Cadena de frio'),
-    (r'\bBPM\b|\bbuenas\s+pr[aá]cticas\b', 'BPM'),
-    (r'\bHACCP\b', 'HACCP'),
-]
-
-EXPERIENCIA_PATTERNS = [
-    (r'sin\s+experiencia|no\s+requiere\s+experiencia|primera\s+vez', 'Sin experiencia'),
-    (r'1\s*a[nñ]o|12\s*meses|un\s*\(?\d?\)?\s*a[nñ]o', '1 ano'),
-    (r'2\s*a[nñ]os?|24\s*meses', '2 anos'),
-    (r'3\s*a[nñ]os?|36\s*meses', '3 anos'),
-    (r'[45]\s*a[nñ]os?', '4-5 anos'),
-    (r'[6-9]\s*a[nñ]os?|\d{2,}\s*a[nñ]os?|m[aá]s\s+de\s+5', '5+ anos'),
-]
-
-CONTRATO_PATTERNS = [
-    (r'indefinido|fijo\s+indefinido|planta', 'Indefinido'),
-    (r'fijo|t[eé]rmino\s+fijo|temporal', 'Fijo'),
-    (r'prestaci[oó]n\s+de\s+servicios|contratista|independiente|freelance', 'Prestacion de servicios'),
-    (r'obra\s+o?\s*labor|obra\s+civil|por\s+obra', 'Obra o labor'),
-    (r'aprendiz|sena|practicante|pr[aá]ctica', 'Aprendizaje'),
-]
-
-EDUCACION_PATTERNS = [
-    (r'bachiller|secundaria|11[°º]', 'Bachiller'),
-    (r't[eé]cnic[oa]', 'Tecnico'),
-    (r'tecn[oó]log[oa]', 'Tecnologo'),
-    (r'profesional|universitari[oa]|ingenier[oa]|abogad[oa]|licenciad[oa]', 'Profesional'),
-    (r'especializaci[oó]n|especialista|postgrado|posgrado', 'Especializacion'),
-    (r'maestr[ií]a|magister|m[aá]ster', 'Maestria'),
-]
-
-MODALIDAD_PATTERNS = [
-    (r'remoto|teletrabajo|home\s*office|desde\s+casa|virtual', 'Remoto'),
-    (r'h[ií]brido|mixto|alterno', 'Hibrido'),
-    (r'presencial|en\s+sitio|campo|planta', 'Presencial'),
-]
-
-SECTOR_PATTERNS = [
-    (r'\bagrícol|\bagricol|\bbanano|\bplátano|\bcultivo|\bagrono|\bfinca\b', 'Agroindustria'),
-    (r'\bsalud|\benferm|\bmédic|\bhospital|\bIPS\b|\bEPS\b|\bfarmac', 'Salud'),
-    (r'\beduca|\bdocente|\bprofesor|\bcolegio|\binstruct', 'Educación'),
-    (r'\bcontabl|\bcontador|\bfinanci|\baudit|\btribut|\bimpuest', 'Contabilidad y Finanzas'),
-    (r'\bvend|\bcomercial|\btienda|\bmercad|\bTAT\b', 'Comercio y Ventas'),
-    (r'\bconstrucc|\bobra|\bingenier.*civil|\bmaestro.*obra|\barquitect', 'Construcción'),
-    (r'\btecnolog|\bsistema|\bdesarroll|\bsoftware|\bIT\b|\bprogramad', 'Tecnología'),
-    (r'\btransport|\blogíst|\bconductor|\bchof', 'Transporte y Logística'),
-    (r'\bseguridad|\bvigilant|\bcustodia|\bguarda', 'Seguridad'),
-    (r'\bturism|\bhotel|\brestaurant|\bcocin|\bchef\b|\bmesero', 'Turismo y Gastronomía'),
-    (r'\badministrativ|\bsecretari|\brecepcion|\basistente.*admin', 'Administrativo'),
-    (r'\bderecho|\bjuríd|\babogad|\blegal', 'Jurídico'),
-    (r'\brecursos humanos|\btalento humano|\bRRHH\b|\bnómin', 'Recursos Humanos'),
-    (r'\bmantenimiento|\bmecánic|\belectric|\btécnic', 'Mantenimiento'),
-]
-
-
-def extract_skills(titulo, descripcion):
-    combined = f"{titulo or ''} {descripcion or ''}".lower()
-    return [name for pattern, name in SKILL_PATTERNS if re.search(pattern, combined, re.IGNORECASE)]
-
-
-def classify_sector(titulo, descripcion):
-    combined = f"{titulo or ''} {descripcion or ''}".lower()
-    for pattern, sector in SECTOR_PATTERNS:
-        if re.search(pattern, combined, re.IGNORECASE):
-            return sector
-    return 'Otro'
-
-
-def extract_enrichment(titulo, descripcion):
-    """Extract nivel_experiencia, tipo_contrato, nivel_educativo, modalidad."""
-    combined = f"{titulo or ''} {descripcion or ''}".lower()
-    result = {}
-    for patterns, key in [
-        (EXPERIENCIA_PATTERNS, 'nivel_experiencia'),
-        (CONTRATO_PATTERNS, 'tipo_contrato'),
-        (EDUCACION_PATTERNS, 'nivel_educativo'),
-        (MODALIDAD_PATTERNS, 'modalidad'),
-    ]:
-        for pattern, label in patterns:
-            if re.search(pattern, combined, re.IGNORECASE):
-                result[key] = label
-                break
-        else:
-            result[key] = None
-    return result
-
-
-def parse_salary(salario_str):
-    if not salario_str:
-        return None
-    cleaned = re.sub(r'[^\d.]', '', salario_str.split('+')[0].split('-')[0].strip())
-    parts = cleaned.split('.')
-    if len(parts) > 2:
-        cleaned = ''.join(parts)
-    elif len(parts) == 2 and len(parts[1]) == 3:
-        cleaned = ''.join(parts)
-    try:
-        val = int(cleaned)
-        return val if val > 100000 else None
-    except (ValueError, OverflowError):
-        return None
-
-
-def get_dane_code(municipio):
-    return MUNICIPIO_DANE.get((municipio or '').lower().strip()) if municipio else None
+from etl_sync import (
+    extract_skills,
+    classify_sector,
+    extract_enrichment,
+    parse_salary,
+    get_dane_code,
+    compute_dedup_hash,
+)
 
 
 def main():
@@ -211,16 +38,22 @@ def main():
 
     engine = create_engine(DB_URL, pool_size=1, max_overflow=0)
 
-    # Get existing hashes from PG
+    # Get existing hashes from PG (both content_hash and dedup_hash)
     with engine.connect() as conn:
-        existing = set()
+        existing_content = set()
+        existing_dedup = set()
         try:
-            rows = conn.execute(text("SELECT content_hash FROM empleo.ofertas_laborales WHERE content_hash IS NOT NULL")).fetchall()
-            existing = {r[0] for r in rows}
+            rows = conn.execute(text(
+                "SELECT content_hash, dedup_hash FROM empleo.ofertas_laborales "
+                "WHERE content_hash IS NOT NULL OR dedup_hash IS NOT NULL"
+            )).fetchall()
+            existing_content = {r[0] for r in rows if r[0]}
+            existing_dedup = {r[1] for r in rows if r[1]}
         except Exception:
             print("WARN: Table empleo.ofertas_laborales may not exist, will try to create")
 
-    print(f"  {len(existing)} ofertas existentes en Supabase")
+    print(f"  {len(existing_content)} ofertas existentes (content_hash)")
+    print(f"  {len(existing_dedup)} ofertas existentes (dedup_hash)")
 
     # Read SQLite
     conn_sqlite = sqlite3.connect(str(SQLITE_PATH))
@@ -228,8 +61,8 @@ def main():
     all_rows = conn_sqlite.execute("SELECT * FROM ofertas ORDER BY id").fetchall()
     print(f"  {len(all_rows)} ofertas en SQLite")
 
-    new_rows = [r for r in all_rows if r['content_hash'] not in existing]
-    print(f"  {len(new_rows)} nuevas ofertas para sincronizar")
+    new_rows = [r for r in all_rows if r['content_hash'] not in existing_content]
+    print(f"  {len(new_rows)} nuevas ofertas (por content_hash) para sincronizar")
 
     if not new_rows:
         print("Nada nuevo para sincronizar.")
@@ -264,17 +97,34 @@ def main():
             )
         """))
         # Add new columns if table already exists (idempotent)
-        for col in ['nivel_experiencia', 'tipo_contrato', 'nivel_educativo', 'modalidad']:
+        for col in ['nivel_experiencia', 'tipo_contrato', 'nivel_educativo', 'modalidad', 'dedup_hash']:
             conn.execute(text(f"ALTER TABLE empleo.ofertas_laborales ADD COLUMN IF NOT EXISTS {col} TEXT"))
 
+        # Create unique index on dedup_hash for cross-portal deduplication
+        conn.execute(text("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_ofertas_dedup_hash
+            ON empleo.ofertas_laborales (dedup_hash)
+            WHERE dedup_hash IS NOT NULL
+        """))
+
         inserted = 0
+        skipped_dedup = 0
         for row in new_rows:
             titulo = row['titulo']
             desc = row['descripcion']
+            municipio = row['municipio']
+            empresa = row['empresa']
+
+            # Cross-portal dedup: skip if same title+company+municipality already exists
+            dedup = compute_dedup_hash(titulo, empresa, municipio)
+            if dedup in existing_dedup:
+                skipped_dedup += 1
+                continue
+
             skills = extract_skills(titulo, desc)
             sector = classify_sector(titulo, desc)
             salario_num = parse_salary(row['salario'])
-            dane = get_dane_code(row['municipio'])
+            dane = get_dane_code(municipio)
             enrich = extract_enrichment(titulo, desc)
 
             fecha_pub = row['fecha_pub']
@@ -287,36 +137,40 @@ def main():
                 INSERT INTO empleo.ofertas_laborales
                     (titulo, empresa, salario_texto, salario_numerico, descripcion,
                      fecha_publicacion, enlace, municipio, dane_code, fuente,
-                     sector, skills, fecha_scraping, content_hash,
+                     sector, skills, fecha_scraping, content_hash, dedup_hash,
                      nivel_experiencia, tipo_contrato, nivel_educativo, modalidad)
                 VALUES
                     (:titulo, :empresa, :salario_texto, :salario_num, :descripcion,
                      :fecha_pub, :enlace, :municipio, :dane, :fuente,
-                     :sector, :skills, :fecha_scraping, :hash,
+                     :sector, :skills, :fecha_scraping, :hash, :dedup_hash,
                      :nivel_experiencia, :tipo_contrato, :nivel_educativo, :modalidad)
+                ON CONFLICT (dedup_hash) WHERE dedup_hash IS NOT NULL DO NOTHING
             """), {
                 "titulo": titulo,
-                "empresa": row['empresa'],
+                "empresa": empresa,
                 "salario_texto": row['salario'],
                 "salario_num": salario_num,
                 "descripcion": desc,
                 "fecha_pub": fecha_pub if fecha_pub else None,
                 "enlace": row['enlace'],
-                "municipio": row['municipio'],
+                "municipio": municipio,
                 "dane": dane,
                 "fuente": row['fuente'],
                 "sector": sector,
                 "skills": skills,
                 "fecha_scraping": row['fecha_scraping'],
                 "hash": row['content_hash'],
+                "dedup_hash": dedup,
                 "nivel_experiencia": enrich['nivel_experiencia'],
                 "tipo_contrato": enrich['tipo_contrato'],
                 "nivel_educativo": enrich['nivel_educativo'],
                 "modalidad": enrich['modalidad'],
             })
+            existing_dedup.add(dedup)
             inserted += 1
 
         print(f"  Insertadas: {inserted} nuevas ofertas")
+        print(f"  Omitidas por deduplicación cross-portal: {skipped_dedup}")
 
     conn_sqlite.close()
     engine.dispose()
