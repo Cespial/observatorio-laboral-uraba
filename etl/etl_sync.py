@@ -80,7 +80,68 @@ SKILL_PATTERNS = [
     (r'\bcadena\s+de\s+fr[ií]o\b', 'Cadena de frio'),
     (r'\bBPM\b|\bbuenas\s+pr[aá]cticas\b', 'BPM'),
     (r'\bHACCP\b', 'HACCP'),
+    # ---- Portuarios / Comercio exterior ----
+    (r'\baduana[s]?\b|\baduaner', 'Aduanas'),
+    (r'\bcontenedor\w*\b|\bconteiner\b', 'Contenedores'),
+    (r'\bestiba\b|\bestibador\b', 'Estiba'),
+    (r'\bzona\s+franca\b', 'Zona franca'),
+    (r'\bnaviera\b|\bmar[ií]tim\b', 'Logística marítima'),
+    # ---- Agro avanzado ----
+    (r'\bganader[ií]a\b|\bganadero\b|\bganado\b', 'Ganadería'),
+    (r'\bveterinari[ao]?\b|\bzootecn', 'Veterinaria'),
+    (r'\bpalma\b|\bpalm[ií]cul\b|\baceite\s+de\s+palma\b', 'Palma'),
+    (r'\bporc[ií]cul\w*\b|\bporcino\b|\bcerdo\b', 'Porcicultura'),
+    (r'\bacuicul\w*\b|\bpiscicul\w*\b|\bcamar[oó]n\b|\bpesc\b', 'Acuicultura'),
+    (r'\bcauca?\b|\bcacao\b', 'Cacao'),
+    # ---- Turismo ----
+    (r'\bgu[ií]a\s+tur[ií]stic[oa]?\b', 'Guía turístico'),
+    (r'\bhoteler[ií]a\b|\brecepci[oó]n\s+hotel\b', 'Hotelería'),
+    (r'\bservicio\s+de\s+habitaci[oó]n\b|\bcamarera?\b', 'Servicio de habitación'),
+    (r'\bbarista\b|\bbar\s+tender\b|\bbartender\b', 'Barista/Bartender'),
+    # ---- Transporte especial ----
+    (r'\bfluvi[aá]l\b|\bembarcaci[oó]n\b|\blancha\b', 'Transporte fluvial'),
+    (r'\bmaquinaria\s+pesada\b|\bretroexcavadora\b|\bbulldozer\b', 'Maquinaria pesada'),
+    (r'\btractor\b|\btractorista\b', 'Tractor'),
 ]
+
+# Categorización de skills para análisis agrupado
+SKILL_CATEGORIES = {
+    "Tecnológica": [
+        "Excel", "Word", "SAP", "Python", "SQL", "Power BI", "Tableau",
+        "ERP", "CRM", "AutoCAD", "Diseno grafico", "Software contable",
+        "Redes sociales",
+    ],
+    "Agroindustrial": [
+        "Agricultura", "Cultivo banano/plátano", "Cosecha", "Fitosanidad",
+        "Riego y drenaje", "Empaque", "Certificaciones agrícolas",
+        "Certificacion organica", "Cadena de frio", "BPM", "HACCP",
+        "Ganadería", "Veterinaria", "Palma", "Porcicultura", "Acuicultura",
+        "Cacao",
+    ],
+    "Blanda": [
+        "Liderazgo", "Trabajo en equipo", "Comunicación", "Negociación",
+        "Manejo de personal", "Atención al cliente", "Servicio al cliente",
+        "Ventas", "Marketing", "Gestion", "Planeacion",
+    ],
+    "Industrial": [
+        "Soldadura", "Montacargas", "Electricidad", "Mecánica", "Construcción",
+        "SST", "Primeros auxilios", "Maquinaria pesada", "Tractor",
+    ],
+    "Administrativa": [
+        "Contabilidad", "Facturación", "Presupuesto", "Inventarios",
+        "Manejo de caja", "Cobranza/Cartera", "Gestion de calidad",
+        "Inglés", "Educación", "Enfermería", "Medicina",
+    ],
+    "Logística y Transporte": [
+        "Logística", "Licencia de conducción", "Moto propia", "Vehiculo propio",
+        "Comercio exterior", "Aduanas", "Contenedores", "Estiba",
+        "Zona franca", "Logística marítima", "Transporte fluvial",
+    ],
+    "Turismo y Gastronomía": [
+        "Guía turístico", "Hotelería", "Servicio de habitación",
+        "Barista/Bartender",
+    ],
+}
 
 EXPERIENCIA_PATTERNS = [
     (r'sin\s+experiencia|no\s+requiere\s+experiencia|primera\s+vez', 'Sin experiencia'),
@@ -203,3 +264,18 @@ def parse_salary(salario_str):
 
 def get_dane_code(municipio):
     return MUNICIPIO_DANE.get((municipio or '').lower().strip()) if municipio else None
+
+
+def categorize_skills(skills_list):
+    """Given a list of skill names, return {category: [skills]} mapping."""
+    result = {}
+    categorized = set()
+    for cat, members in SKILL_CATEGORIES.items():
+        matched = [s for s in skills_list if s in members]
+        if matched:
+            result[cat] = matched
+            categorized.update(matched)
+    uncategorized = [s for s in skills_list if s not in categorized]
+    if uncategorized:
+        result["Otra"] = uncategorized
+    return result

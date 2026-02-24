@@ -106,6 +106,11 @@ export const useStore = create((set, get) => ({
         sectorMunicipioMatrix: null,
         ofertaDemandaData: null,
         enrichmentData: null,
+        cadenasProductivasData: null,
+        estacionalidadData: null,
+        informalidadData: null,
+        salarioImputadoData: null,
+        skillsCategorizedData: null,
         errors: {},
       }))
 
@@ -155,6 +160,11 @@ export const useStore = create((set, get) => ({
   sectorMunicipioMatrix: null,
   ofertaDemandaData: null,
   enrichmentData: null,
+  cadenasProductivasData: null,
+  estacionalidadData: null,
+  informalidadData: null,
+  salarioImputadoData: null,
+  skillsCategorizedData: null,
   errors: {},
   selectedCategory: null,
   setSelectedCategory: (cat) => set({ selectedCategory: cat }),
@@ -471,6 +481,53 @@ export const useStore = create((set, get) => ({
     } catch (e) {
       console.error('fetchEnrichmentData:', e)
       set((s) => ({ errors: { ...s.errors, enrichment: e.message } }))
+    }
+  },
+  fetchCadenasProductivas: async () => {
+    if (get().cadenasProductivasData) return
+    try {
+      set({ cadenasProductivasData: await safeFetch(`${API}/analytics/laboral/cadenas-productivas`) })
+    } catch (e) {
+      console.error('fetchCadenasProductivas:', e)
+      set((s) => ({ errors: { ...s.errors, cadenas: e.message } }))
+    }
+  },
+  fetchEstacionalidad: async () => {
+    if (get().estacionalidadData) return
+    try {
+      set({ estacionalidadData: await safeFetch(`${API}/analytics/laboral/estacionalidad`) })
+    } catch (e) {
+      console.error('fetchEstacionalidad:', e)
+      set((s) => ({ errors: { ...s.errors, estacionalidad: e.message } }))
+    }
+  },
+  fetchInformalidad: async () => {
+    if (get().informalidadData) return
+    try {
+      set({ informalidadData: await safeFetch(`${API}/analytics/laboral/informalidad`) })
+    } catch (e) {
+      console.error('fetchInformalidad:', e)
+      set((s) => ({ errors: { ...s.errors, informalidad: e.message } }))
+    }
+  },
+  fetchSalarioImputado: async () => {
+    if (get().salarioImputadoData) return
+    try {
+      set({ salarioImputadoData: await safeFetch(`${API}/analytics/laboral/salario-imputado`) })
+    } catch (e) {
+      console.error('fetchSalarioImputado:', e)
+      set((s) => ({ errors: { ...s.errors, salarioImputado: e.message } }))
+    }
+  },
+  fetchSkillsCategorized: async () => {
+    if (get().skillsCategorizedData) return
+    const mun = get().municipios.find(m => m.name === get().selectedMunicipio)
+    const dp = mun && mun.divipola !== 'REGIONAL' ? `?dane_code=${mun.divipola}` : ''
+    try {
+      set({ skillsCategorizedData: await safeFetch(`${API}/empleo/skills-categorized${dp}`) })
+    } catch (e) {
+      console.error('fetchSkillsCategorized:', e)
+      set((s) => ({ errors: { ...s.errors, skillsCategorized: e.message } }))
     }
   },
   fetchBusinessDirectory: async (params = {}) => {

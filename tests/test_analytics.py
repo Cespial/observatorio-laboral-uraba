@@ -109,3 +109,131 @@ class TestSectorMunicipio:
         agro = next(s for s in data if s["sector"] == "Agroindustria")
         assert agro["Apartadó"] == 30
         assert agro["total"] == 50
+
+
+class TestCadenasProductivas:
+    def test_cadenas_returns_list(self, client, mock_query_dicts):
+        mock_query_dicts.side_effect = [
+            # sector_data
+            [
+                {"sector": "Agroindustria", "municipio": "Apartadó", "ofertas": 40,
+                 "empresas": 8, "salario_promedio": 1500000},
+                {"sector": "Turismo y Gastronomía", "municipio": "Turbo", "ofertas": 15,
+                 "empresas": 5, "salario_promedio": 1200000},
+            ],
+            # skills_data
+            [
+                {"sector": "Agroindustria", "skill": "Cosecha", "demanda": 12},
+                {"sector": "Agroindustria", "skill": "Empaque", "demanda": 8},
+                {"sector": "Turismo y Gastronomía", "skill": "Hotelería", "demanda": 5},
+            ],
+        ]
+        resp = client.get("/api/analytics/laboral/cadenas-productivas")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert isinstance(data, list)
+        assert len(data) > 0
+        # First should be the one with most offers
+        assert data[0]["ofertas"] >= data[-1]["ofertas"]
+        # Check structure
+        first = data[0]
+        assert "cadena" in first
+        assert "ofertas" in first
+        assert "empresas" in first
+        assert "top_skills" in first
+        assert "municipios" in first
+
+    def test_cadenas_empty_data(self, client, mock_query_dicts):
+        mock_query_dicts.return_value = []
+        resp = client.get("/api/analytics/laboral/cadenas-productivas")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert isinstance(data, list)
+
+
+class TestEstacionalidad:
+    def test_estacionalidad_returns_profile(self, client, mock_query_dicts):
+        mock_query_dicts.side_effect = [
+            # sector × month data
+            [
+                {"mes": 1, "sector": "Agroindustria", "ofertas": 20, "salario_promedio": 1500000},
+                {"mes": 2, "sector": "Agroindustria", "ofertas": 25, "salario_promedio": 1600000},
+                {"mes": 1, "sector": "Salud", "ofertas": 10, "salario_promedio": 2000000},
+            ],
+            # general monthly data
+            [
+                {"mes": 1, "ofertas": 30, "salario_promedio": 1600000},
+                {"mes": 2, "ofertas": 25, "salario_promedio": 1600000},
+            ],
+        ]
+        resp = client.get("/api/analytics/laboral/estacionalidad")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "perfil_general" in data
+        assert "sectores_estacionales" in data
+        assert "promedio_mensual" in data
+        assert len(data["perfil_general"]) == 2
+        # Check classification
+        for m in data["perfil_general"]:
+            assert m["clasificacion"] in ("pico", "valle", "normal")
+            assert "mes_nombre" in m
+
+    def test_estacionalidad_empty(self, client, mock_query_dicts):
+        mock_query_dicts.return_value = []
+        resp = client.get("/api/analytics/laboral/estacionalidad")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["perfil_general"] == []
+        assert data["promedio_mensual"] == 0
+
+
+class TestInformalidad:
+    def test_informalidad_returns_ranking(self, client, mock_query_dicts):
+        mock_query_dicts.side_effect = [
+            # IPM data
+            [{"municipio": "Apartadó", "dane_code": "05045", "tasa_ipm": 65.2}],
+            # Proxy data
+            [{"municipio": "Apartadó", "dane_code": "05045", "total_ofertas": 50,
+              "no_indefinido": 20, "indefinido": 30}],
+            # Pobreza data
+            [{"dane_code": "05045", "pobreza_monetaria": 45.0, "anio": 2023}],
+        ]
+        resp = client.get("/api/analytics/laboral/informalidad")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert isinstance(data, list)
+        assert len(data) == 1
+        item = data[0]
+        assert item["municipio"] == "Apartadó"
+        assert item["tasa_ipm"] == 65.2
+        assert item["proxy_informal_pct"] == 40.0  # 20/50 * 100
+        assert item["pobreza_monetaria"] == 45.0
+        assert item["indice_compuesto"] is not None
+
+    def test_informalidad_empty(self, client, mock_query_dicts):
+        mock_query_dicts.return_value = []
+        resp = client.get("/api/analytics/laboral/informalidad")
+        assert resp.status_code == 200
+        assert resp.json() == []
+
+
+class TestSalarioImputado:
+    def test_salario_imputado_returns_cobertura(self, client, mock_query_dicts):
+        mock_query_dicts.side_effect = [
+            # Reference table
+            [
+                {"sector": "Agroindustria", "municipio": "Apartadó",
+                 "nivel_educativo": "Bachiller", "nivel_experiencia": "1 ano",
+                 "salario_estimado": 1300000, "muestra": 5, "mediana": 1300000},
+            ],
+            # Coverage stats
+            [{"total": 200, "con_salario": 80, "con_imputado": 60}],
+        ]
+        resp = client.get("/api/analytics/laboral/salario-imputado")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "tabla_referencia" in data
+        assert "cobertura" in data
+        assert data["cobertura"]["total_ofertas"] == 200
+        assert data["cobertura"]["pct_salario_real"] == 40.0
+        assert data["cobertura"]["pct_cobertura_total"] == 70.0

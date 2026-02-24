@@ -43,11 +43,12 @@ function TrendBadge({ value }) {
 }
 
 export default function EmpleoTab() {
-  const { empleoData, empleoAnalytics, fetchEmpleo, fetchEmpleoAnalytics, errors } = useStore()
+  const { empleoData, empleoAnalytics, skillsCategorizedData, fetchEmpleo, fetchEmpleoAnalytics, fetchSkillsCategorized, errors } = useStore()
 
   useEffect(() => {
     fetchEmpleo()
     fetchEmpleoAnalytics()
+    fetchSkillsCategorized()
   }, [])
 
   if (errors.empleo) return <ErrorBanner message={errors.empleo} />
@@ -325,6 +326,37 @@ export default function EmpleoTab() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div className="data-source">Extraido de {stats.total_ofertas} ofertas via NLP</div>
             <ExportCSVButton rows={skills} filename="empleo_skills.csv" />
+          </div>
+        </>
+      )}
+
+      {/* Skills por Categoria */}
+      {skillsCategorizedData?.length > 0 && (
+        <>
+          <h4 className="section-title" style={{ fontSize: 11, marginTop: 16 }}>Skills por Categoria</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {skillsCategorizedData.map(cat => (
+              <div key={cat.categoria}>
+                <div style={{
+                  fontSize: 10, fontWeight: 600, color: 'var(--accent-primary)',
+                  marginBottom: 4, textTransform: 'uppercase',
+                }}>
+                  {cat.categoria} ({cat.total_demanda})
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {cat.skills.slice(0, 8).map((s, i) => (
+                    <span key={s.skill} style={{
+                      padding: '3px 8px', borderRadius: 10, fontSize: 10,
+                      background: i < 2 ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                      color: i < 2 ? '#fff' : 'var(--text-secondary)',
+                      border: i >= 2 ? '1px solid var(--border)' : 'none',
+                    }}>
+                      {s.skill} ({s.demanda})
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </>
       )}

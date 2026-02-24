@@ -12,6 +12,8 @@ from etl_sync import (
     get_dane_code,
     extract_enrichment,
     compute_dedup_hash,
+    categorize_skills,
+    SKILL_CATEGORIES,
 )
 
 
@@ -137,3 +139,97 @@ class TestDedupHash:
         h1 = compute_dedup_hash("Operario", None, "Apartadó")
         h2 = compute_dedup_hash("Operario", None, "Apartadó")
         assert h1 == h2
+
+
+class TestNewSkillPatterns:
+    """Tests for newly added Urabá-specific skill patterns."""
+
+    def test_detects_portuario_skills(self):
+        skills = extract_skills("Operador portuario", "Experiencia en aduanas y manejo de contenedores")
+        assert "Aduanas" in skills
+        assert "Contenedores" in skills
+
+    def test_detects_estiba(self):
+        skills = extract_skills("Estibador", "Trabajo de estiba en puerto")
+        assert "Estiba" in skills
+
+    def test_detects_ganaderia(self):
+        skills = extract_skills("Trabajador ganadero", "Experiencia en ganadería bovina")
+        assert "Ganadería" in skills
+
+    def test_detects_veterinaria(self):
+        skills = extract_skills("Profesional veterinario", "Conocimientos en veterinaria")
+        assert "Veterinaria" in skills
+
+    def test_detects_palma(self):
+        skills = extract_skills("Operario", "Trabajo en cultivo de palma de aceite")
+        assert "Palma" in skills
+
+    def test_detects_acuicultura(self):
+        skills = extract_skills("Técnico", "Experiencia en acuicultura y piscicultura")
+        assert "Acuicultura" in skills
+
+    def test_detects_hoteleria(self):
+        skills = extract_skills("Recepcionista", "Experiencia en hotelería")
+        assert "Hotelería" in skills
+
+    def test_detects_guia_turistico(self):
+        skills = extract_skills("Guía turístico", "Servicio de guía turístico en Urabá")
+        assert "Guía turístico" in skills
+
+    def test_detects_transporte_fluvial(self):
+        skills = extract_skills("Motorista", "Transporte fluvial por el río Atrato")
+        assert "Transporte fluvial" in skills
+
+    def test_detects_maquinaria_pesada(self):
+        skills = extract_skills("Operador", "Manejo de maquinaria pesada y retroexcavadora")
+        assert "Maquinaria pesada" in skills
+
+    def test_detects_logistica_maritima(self):
+        skills = extract_skills("Agente", "Logística naviera y marítima")
+        assert "Logística marítima" in skills
+
+    def test_detects_porcicultura(self):
+        skills = extract_skills("Técnico", "Trabajo en porcicultura y cría de cerdos")
+        assert "Porcicultura" in skills
+
+
+class TestCategorizeSkills:
+    """Tests for the skill categorization function."""
+
+    def test_categorizes_tech_skills(self):
+        result = categorize_skills(["Excel", "Python", "SAP"])
+        assert "Tecnológica" in result
+        assert "Excel" in result["Tecnológica"]
+        assert "Python" in result["Tecnológica"]
+
+    def test_categorizes_agro_skills(self):
+        result = categorize_skills(["Cosecha", "Fitosanidad", "Ganadería"])
+        assert "Agroindustrial" in result
+        assert len(result["Agroindustrial"]) == 3
+
+    def test_categorizes_soft_skills(self):
+        result = categorize_skills(["Liderazgo", "Comunicación"])
+        assert "Blanda" in result
+        assert "Liderazgo" in result["Blanda"]
+
+    def test_uncategorized_goes_to_otra(self):
+        result = categorize_skills(["Unknown Skill XYZ"])
+        assert "Otra" in result
+        assert "Unknown Skill XYZ" in result["Otra"]
+
+    def test_empty_input(self):
+        result = categorize_skills([])
+        assert result == {}
+
+    def test_mixed_categories(self):
+        result = categorize_skills(["Excel", "Cosecha", "Liderazgo", "Soldadura"])
+        assert "Tecnológica" in result
+        assert "Agroindustrial" in result
+        assert "Blanda" in result
+        assert "Industrial" in result
+
+    def test_skill_categories_has_all_categories(self):
+        expected = {"Tecnológica", "Agroindustrial", "Blanda", "Industrial",
+                    "Administrativa", "Logística y Transporte", "Turismo y Gastronomía"}
+        assert set(SKILL_CATEGORIES.keys()) == expected

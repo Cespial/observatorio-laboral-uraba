@@ -492,3 +492,49 @@ def get_modalidad_dist(dane_code: str = Query(None)):
         f"SELECT modalidad, COUNT(*) as total FROM empleo.ofertas_laborales WHERE {where} GROUP BY modalidad ORDER BY total DESC",
         params,
     )
+
+
+@router.get("/skills-categorized")
+@cached(ttl_seconds=3600)
+def get_skills_categorized(
+    dane_code: str = Query(None),
+    limit: int = Query(50, le=100),
+):
+    """Skills agrupadas por categoría (Tecnológica, Agroindustrial, Blanda, etc.)."""
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "etl"))
+    from etl_sync import SKILL_CATEGORIES
+
+    conditions = ["1=1"]
+    params = {"lim": limit}
+    if dane_code:
+        conditions.append("dane_code = :dane")
+        params["dane"] = dane_code
+    where = " AND ".join(conditions)
+
+    skills = query_dicts(f"""
+        SELECT skill, COUNT(*) as demanda
+        FROM empleo.ofertas_laborales, UNNEST(skills) AS skill
+        WHERE {where}
+        GROUP BY skill
+        ORDER BY demanda DESC
+        LIMIT :lim
+    """, params)
+
+    # Build reverse lookup: skill -> category
+    skill_to_cat = {}
+    for cat, members in SKILL_CATEGORIES.items():
+        for s in members:
+            skill_to_cat[s] = cat
+
+    # Group by category
+    categories = {}
+    for s in skills:
+        cat = skill_to_cat.get(s["skill"], "Otra")
+        if cat not in categories:
+            categories[cat] = {"categoria": cat, "skills": [], "total_demanda": 0}
+        categories[cat]["skills"].append({"skill": s["skill"], "demanda": s["demanda"]})
+        categories[cat]["total_demanda"] += s["demanda"]
+
+    return sorted(categories.values(), key=lambda x: x["total_demanda"], reverse=True)

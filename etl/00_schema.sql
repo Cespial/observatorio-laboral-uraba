@@ -421,6 +421,7 @@ ALTER TABLE empleo.ofertas_laborales ADD COLUMN IF NOT EXISTS tipo_contrato TEXT
 ALTER TABLE empleo.ofertas_laborales ADD COLUMN IF NOT EXISTS nivel_educativo TEXT;
 ALTER TABLE empleo.ofertas_laborales ADD COLUMN IF NOT EXISTS modalidad TEXT;
 ALTER TABLE empleo.ofertas_laborales ADD COLUMN IF NOT EXISTS dedup_hash TEXT;
+ALTER TABLE empleo.ofertas_laborales ADD COLUMN IF NOT EXISTS salario_imputado INTEGER;
 
 -- Deduplication index: prevents same job from appearing twice across portals
 CREATE UNIQUE INDEX IF NOT EXISTS idx_ofertas_dedup_hash

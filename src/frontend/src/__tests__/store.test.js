@@ -113,4 +113,106 @@ describe('Zustand Store', () => {
       expect(useStore.getState().errors).toHaveProperty('empleo')
     })
   })
+
+  describe('Fase 2: new fetch functions', () => {
+    it('should have fetchCadenasProductivas function', () => {
+      const { fetchCadenasProductivas } = useStore.getState()
+      expect(typeof fetchCadenasProductivas).toBe('function')
+    })
+
+    it('should have fetchEstacionalidad function', () => {
+      const { fetchEstacionalidad } = useStore.getState()
+      expect(typeof fetchEstacionalidad).toBe('function')
+    })
+
+    it('should have fetchInformalidad function', () => {
+      const { fetchInformalidad } = useStore.getState()
+      expect(typeof fetchInformalidad).toBe('function')
+    })
+
+    it('should have fetchSalarioImputado function', () => {
+      const { fetchSalarioImputado } = useStore.getState()
+      expect(typeof fetchSalarioImputado).toBe('function')
+    })
+
+    it('should have fetchSkillsCategorized function', () => {
+      const { fetchSkillsCategorized } = useStore.getState()
+      expect(typeof fetchSkillsCategorized).toBe('function')
+    })
+
+    it('should initialize new state fields as null', () => {
+      const state = useStore.getState()
+      expect(state.cadenasProductivasData).toBeNull()
+      expect(state.estacionalidadData).toBeNull()
+      expect(state.informalidadData).toBeNull()
+      expect(state.salarioImputadoData).toBeNull()
+      expect(state.skillsCategorizedData).toBeNull()
+    })
+
+    it('fetchCadenasProductivas should set data on success', async () => {
+      const mockData = [{ cadena: 'Banano y Plátano', ofertas: 50 }]
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockData),
+      })
+      await useStore.getState().fetchCadenasProductivas()
+      expect(useStore.getState().cadenasProductivasData).toEqual(mockData)
+    })
+
+    it('fetchEstacionalidad should set data on success', async () => {
+      const mockData = { perfil_general: [], sectores_estacionales: [], promedio_mensual: 10 }
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockData),
+      })
+      await useStore.getState().fetchEstacionalidad()
+      expect(useStore.getState().estacionalidadData).toEqual(mockData)
+    })
+
+    it('fetchInformalidad should set data on success', async () => {
+      const mockData = [{ municipio: 'Apartadó', indice_compuesto: 55.0 }]
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockData),
+      })
+      await useStore.getState().fetchInformalidad()
+      expect(useStore.getState().informalidadData).toEqual(mockData)
+    })
+
+    it('fetchSalarioImputado should set data on success', async () => {
+      const mockData = { tabla_referencia: [], cobertura: { total_ofertas: 100 } }
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockData),
+      })
+      await useStore.getState().fetchSalarioImputado()
+      expect(useStore.getState().salarioImputadoData).toEqual(mockData)
+    })
+
+    it('fetch functions should handle errors gracefully', async () => {
+      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'))
+      // Reset state to null so early-return guard doesn't skip fetch
+      useStore.setState({
+        cadenasProductivasData: null,
+        estacionalidadData: null,
+        informalidadData: null,
+      })
+      await useStore.getState().fetchCadenasProductivas()
+      expect(useStore.getState().errors).toHaveProperty('cadenas')
+
+      await useStore.getState().fetchEstacionalidad()
+      expect(useStore.getState().errors).toHaveProperty('estacionalidad')
+
+      await useStore.getState().fetchInformalidad()
+      expect(useStore.getState().errors).toHaveProperty('informalidad')
+    })
+
+    it('fetch functions should skip if data already loaded', async () => {
+      useStore.setState({ cadenasProductivasData: [{ cadena: 'cached' }] })
+      global.fetch = vi.fn()
+      await useStore.getState().fetchCadenasProductivas()
+      // fetch should NOT have been called since data exists
+      expect(global.fetch).not.toHaveBeenCalled()
+    })
+  })
 })

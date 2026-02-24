@@ -77,7 +77,7 @@ function TrendBadge({ data, dataKey }) {
   )
 }
 
-export default function LaborSection({ empleoData, empleoKpis, empleoAnalytics }) {
+export default function LaborSection({ empleoData, empleoKpis, empleoAnalytics, salarioImputado }) {
   const kpis = empleoKpis
   const stats = empleoData?.stats
   const serie = empleoData?.serie
@@ -121,6 +121,18 @@ export default function LaborSection({ empleoData, empleoKpis, empleoAnalytics }
               {kpis?.salario_promedio ? fmtSalary(kpis.salario_promedio) : '---'}
             </div>
             <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Salario promedio</div>
+            {salarioImputado?.cobertura && (
+              <div style={{
+                marginTop: 4, padding: '2px 8px', borderRadius: 10, fontSize: 9,
+                background: 'var(--bg-tertiary)', color: 'var(--text-muted)',
+                display: 'inline-block', border: '1px solid var(--border)',
+              }}>
+                {salarioImputado.cobertura.pct_salario_real}% real
+                {salarioImputado.cobertura.pct_cobertura_total > salarioImputado.cobertura.pct_salario_real && (
+                  <> + {(salarioImputado.cobertura.pct_cobertura_total - salarioImputado.cobertura.pct_salario_real).toFixed(1)}% estimado</>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginTop: 10 }}>

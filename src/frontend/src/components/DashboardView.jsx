@@ -9,6 +9,9 @@ import EnrichmentCharts from './dashboard/EnrichmentCharts'
 import OfertaDemandaGauge from './dashboard/OfertaDemandaGauge'
 import SectorMunicipioHeatmap from './dashboard/SectorMunicipioHeatmap'
 import OfertasExplorer from './dashboard/OfertasExplorer'
+import CadenasProductivasSection from './dashboard/CadenasProductivasSection'
+import EstacionalidadSection from './dashboard/EstacionalidadSection'
+import InformalidadSection from './dashboard/InformalidadSection'
 
 function DashboardSkeleton() {
   return (
@@ -37,9 +40,13 @@ export default function DashboardView() {
     empleoData, empleoKpis, empleoAnalytics,
     economiaData, summary,
     enrichmentData, sectorMunicipioMatrix, ofertaDemandaData,
+    cadenasProductivasData, estacionalidadData, informalidadData,
+    salarioImputadoData,
     fetchEmpleoKpis, fetchEmpleo, fetchEmpleoAnalytics,
     fetchEconomia, fetchEnrichmentData,
     fetchSectorMunicipioMatrix, fetchOfertaDemanda,
+    fetchCadenasProductivas, fetchEstacionalidad,
+    fetchInformalidad, fetchSalarioImputado,
   } = useStore()
 
   useEffect(() => {
@@ -51,6 +58,11 @@ export default function DashboardView() {
     fetchSectorMunicipioMatrix()
     fetchOfertaDemanda()
     fetchEconomia()
+    // Fase 2: deep labor analytics
+    fetchCadenasProductivas()
+    fetchEstacionalidad()
+    fetchInformalidad()
+    fetchSalarioImputado()
   }, [selectedMunicipio])
 
   const hasLabor = empleoData || empleoKpis
@@ -81,6 +93,7 @@ export default function DashboardView() {
               empleoData={empleoData}
               empleoKpis={empleoKpis}
               empleoAnalytics={empleoAnalytics}
+              salarioImputado={salarioImputadoData}
             />
           </div>
           <div style={{ display: 'contents' }}>
@@ -94,13 +107,22 @@ export default function DashboardView() {
           <EnrichmentCharts enrichmentData={enrichmentData} />
           <OfertaDemandaGauge data={ofertaDemandaData} />
 
-          {/* Row 5: Sector-Municipio Heatmap (span 2) */}
+          {/* Row 4: Cadenas Productivas (span 2 + 1) */}
+          <CadenasProductivasSection data={cadenasProductivasData} />
+
+          {/* Row 5: Informalidad Laboral (span 2 + 1) */}
+          <InformalidadSection data={informalidadData} />
+
+          {/* Row 6: Estacionalidad Laboral (span 2 × 2) */}
+          <EstacionalidadSection data={estacionalidadData} />
+
+          {/* Row 7: Sector-Municipio Heatmap (span 2) */}
           <SectorMunicipioHeatmap data={sectorMunicipioMatrix} />
 
-          {/* Row 7: Ofertas Explorer (span 3) */}
+          {/* Row 8: Ofertas Explorer (span 3) */}
           <OfertasExplorer />
 
-          {/* Row 8: Business Directory (span 3) */}
+          {/* Row 9: Business Directory (span 3) */}
           <BusinessDirectory />
         </div>
       )}
