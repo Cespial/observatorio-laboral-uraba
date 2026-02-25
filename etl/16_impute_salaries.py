@@ -82,11 +82,11 @@ def build_reference_table(conn):
     ref2 = {}
     for r in level2:
         key = (r[0], r[1])
-        ref2[key] = int(r[4])
+        ref2[key] = int(r[2])
 
     ref3 = {}
     for r in level3:
-        ref3[r[0]] = int(r[4])
+        ref3[r[0]] = int(r[1])
 
     print(f"  Reference tables: L1={len(ref1)} | L2={len(ref2)} | L3={len(ref3)}")
     return ref1, ref2, ref3
